@@ -272,72 +272,55 @@
 
   function startPreview() {
     var sec = Store.getPreviewSeconds();
+    var wave = reduceMotion ? 0 : 26;
     var banner = $('previewBanner');
     var countEl = $('previewCount');
     var barEl = $('previewBar');
 
-    var chunkCount = 4; // 8장씩 4묶음으로 나눠 공개 (촬영 방지)
-    var chunkSize = Math.ceil(CARDS / chunkCount);
-    var totalMs = Math.max(sec, 4) * 1000;
-    var slotMs = Math.floor(totalMs / chunkCount);
-
-    // 보드 전체에서 무작위 순서로 8장씩 묶음 구성
-    var indices = [];
-    for (var idx = 0; idx < CARDS; idx++) indices.push(idx);
-    for (var j = indices.length - 1; j > 0; j--) {
-      var r = Math.floor(Math.random() * (j + 1));
-      var tmp = indices[j]; indices[j] = indices[r]; indices[r] = tmp;
-    }
-
-    $('hudStatus').textContent = '미리보기 — 8장씩 나눠서 잠깐 공개됩니다';
-    $('gameHint').textContent = '촬영 방지를 위해 한 번에 8장씩만 뒤집어 보여줍니다. 집중해서 기억하세요!';
+    $('hudStatus').textContent = '미리보기 — 그림을 기억하세요';
+    $('gameHint').textContent = '미리보기 동안 32장의 그림이 모두 공개됩니다.';
     banner.hidden = false;
     countEl.textContent = String(sec);
     barEl.style.transition = 'none';
     barEl.style.transform = 'scaleX(1)';
 
-    requestAnimationFrame(function () {
-      barEl.style.transition = 'transform ' + (totalMs / 1000) + 's linear';
-      barEl.style.transform = 'scaleX(0)';
+    // 파도타기처럼 한 장씩 앞면으로
+    state.cards.forEach(function (card, i) {
+      later(function () { card.classList.add('is-flipped'); }, i * wave);
     });
 
-    var start = Date.now();
-    state.previewInterval = setInterval(function () {
-      var remain = (totalMs - (Date.now() - start)) / 1000;
-      countEl.textContent = String(Math.max(0, Math.ceil(remain)));
-      if (remain <= 0) {
-        clearInterval(state.previewInterval);
-        state.previewInterval = null;
-      }
-    }, 100);
-
-    for (var g = 0; g < chunkCount; g++) {
-      (function (groupIdx) {
-        var slice = indices.slice(groupIdx * chunkSize, (groupIdx + 1) * chunkSize);
-        var openAt = groupIdx * slotMs;
-        var closeAt = (groupIdx + 1) * slotMs - 180;
-        later(function () {
-          slice.forEach(function (ci) {
-            if (state.cards[ci]) state.cards[ci].classList.add('is-flipped');
-          });
-        }, openAt);
-        later(function () {
-          slice.forEach(function (ci) {
-            if (state.cards[ci]) state.cards[ci].classList.remove('is-flipped');
-          });
-        }, closeAt);
-      })(g);
-    }
+    var waveIn = (CARDS - 1) * wave + 460;
 
     later(function () {
-      if (state.previewInterval) {
-        clearInterval(state.previewInterval);
-        state.previewInterval = null;
-      }
-      state.cards.forEach(function (card) { card.classList.remove('is-flipped'); });
-      $('previewBanner').hidden = true;
-      beginPlay();
-    }, totalMs + 220);
+      var remain = sec;
+      var start = Date.now();
+      requestAnimationFrame(function () {
+        barEl.style.transition = 'transform ' + sec + 's linear';
+        barEl.style.transform = 'scaleX(0)';
+      });
+
+      state.previewInterval = setInterval(function () {
+        remain = sec - (Date.now() - start) / 1000;
+        countEl.textContent = String(Math.max(0, Math.ceil(remain)));
+        if (remain <= 0) {
+          clearInterval(state.previewInterval);
+          state.previewInterval = null;
+          hideAllCards();
+        }
+      }, 100);
+    }, waveIn);
+  }
+
+  function hideAllCards() {
+    var wave = reduceMotion ? 0 : 16;
+    $('hudStatus').textContent = '시작! 같은 인물 두 장을 찾으세요';
+    $('previewBanner').hidden = true;
+
+    state.cards.forEach(function (card, i) {
+      later(function () { card.classList.remove('is-flipped'); }, i * wave);
+    });
+
+    later(function () { beginPlay(); }, (CARDS - 1) * wave + 470);
   }
 
   function beginPlay() {
