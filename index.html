@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#0b0d17" />
+<title>연예인 같은그림찾기 서바이벌</title>
+<meta name="description" content="워크샵용 모바일 웹 게임 · 32장의 카드에서 16쌍의 연예인을 한 번의 실수 없이 찾아라" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d17'/%3E%3Crect x='20' y='14' width='24' height='36' rx='5' fill='none' stroke='%23ffcf5c' stroke-width='4'/%3E%3Cpath d='M32 25v10' stroke='%23ffcf5c' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-screen="intro">
+
+<div class="app">
+
+  <!-- ================= 인트로 ================= -->
+  <section id="screenIntro" class="screen screen--intro">
+    <div class="intro-card">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true"></span>
+        <span class="brand__text">WORKSHOP GAME</span>
+      </div>
+
+      <h1 class="intro-title">연예인<br /><span>같은그림찾기</span></h1>
+      <p class="intro-sub">단 한 번의 실수도 없이, 16쌍을 모두 찾아라</p>
+      <p class="intro-round" id="introRound"></p>
+
+      <form id="startForm" class="start-form" autocomplete="off" novalidate>
+        <label class="field-label" for="teamName">팀 이름</label>
+        <div class="field-row">
+          <input id="teamName" class="field-input" type="text" maxlength="12" inputmode="text"
+                 placeholder="예) 3팀" aria-describedby="nameHelp" required />
+          <button class="btn btn--primary" type="submit" id="btnStart">게임 시작</button>
+        </div>
+        <p id="nameHelp" class="field-help">완료 순서대로 순위가 매겨집니다.</p>
+      </form>
+
+      <div id="lockedBox" class="locked" hidden>
+        <p class="locked__team" id="lockedTeam"></p>
+        <p class="locked__result" id="lockedResult"></p>
+        <p class="locked__note">새로고침으로 다시 도전할 수 없습니다.<br />사회자가 초기화하면 새 게임에 참여할 수 있어요.</p>
+      </div>
+
+      <ul class="rules">
+        <li>미리보기 <b id="rulePreview">5</b>초 동안 32장의 그림을 외치세요.</li>
+        <li>카드 두 장을 뒤집어 같은 인물이면 그대로 열립니다.</li>
+        <li><b>한 번이라도 다른 그림이 나오면 즉시 탈락.</b></li>
+        <li>16쌍을 모두 맞히면 <b>완료</b> 버튼이 열립니다.</li>
+      </ul>
+
+      <p class="intro-foot">가장 먼저 완료 버튼을 누른 팀이 1등 🥇</p>
+    </div>
+  </section>
+
+  <!-- ================= 게임 ================= -->
+  <section id="screenGame" class="screen screen--game" aria-label="게임 화면">
+    <header class="hud">
+      <div class="hud__group hud__group--left">
+        <span class="team-chip" id="hudTeam">팀</span>
+        <span class="hud__label">찾은 짝</span>
+        <span class="hud__pairs"><b id="hudPairs">0</b><span class="muted" id="hudPairsTotal">/16</span></span>
+      </div>
+      <div class="hud__status" id="hudStatus">카드를 두 장 뒤집어 같은 인물을 찾으세요</div>
+      <div class="hud__group hud__group--right">
+        <span class="hud__timer" id="hudTimer">00:00</span>
+        <button class="icon-btn" id="btnSound" type="button" aria-pressed="true" title="소리 끄기" aria-label="소리 끄기">🔊</button>
+      </div>
+    </header>
+
+    <div class="board-wrap" id="boardWrap">
+      <div class="preview-banner" id="previewBanner" hidden>
+        <span class="preview-banner__label">미리보기</span>
+        <span class="preview-banner__time"><b id="previewCount">5</b><small>초</small></span>
+        <span class="preview-banner__bar"><i id="previewBar"></i></span>
+      </div>
+      <div class="board" id="board" role="grid" aria-label="카드 32장"></div>
+    </div>
+
+    <footer class="gamebar">
+      <div class="gamebar__hint" id="gameHint">미리보기 그림을 기억한 뒤, 같은 인물 두 장을 차례로 누르세요.</div>
+      <button class="btn btn--complete" id="btnComplete" type="button" disabled>완료</button>
+      <div class="gamebar__side"><span id="gamebarRank" class="rank-mini" hidden></span></div>
+    </footer>
+  </section>
+
+</div>
+
+<!-- ================= 결과 / 안내 오버레이 ================= -->
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay__card" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+    <div class="overlay__emoji" id="ovEmoji">😵</div>
+    <h2 class="overlay__title" id="ovTitle">탈락!</h2>
+    <div class="overlay__body" id="ovBody"></div>
+    <button class="btn btn--ghost" id="ovClose" type="button">확인</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0d17" />
+<title>운영 콘솔 · 연예인 같은그림찾기</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d17'/%3E%3Crect x='20' y='14' width='24' height='36' rx='5' fill='none' stroke='%23ffcf5c' stroke-width='4'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__title">
+    <span class="dot"></span>
+    <b>연예인 같은그림찾기</b>
+    <span class="topbar__sub">운영 콘솔</span>
+  </div>
+  <div class="topbar__right">
+    <span class="badge badge--mode" id="modeBadge">확인 중…</span>
+    <a class="link-plain" href="index.html" target="_blank" rel="noopener">참가자 화면 ↗</a>
+  </div>
+</header>
+
+<main class="admin">
+
+  <!-- 참가자 링크 -->
+  <section class="panel panel--link">
+    <div class="panel__head">
+      <h2>참가자 접속 링크</h2>
+      <span class="panel__hint">팀별 대표 노트북에서 이 주소로 접속합니다</span>
+    </div>
+
+    <div class="link-box" id="linkBox" title="클릭하면 전체 선택됩니다">
+      <span class="link-url" id="gameUrl">불러오는 중…</span>
+    </div>
+
+    <div class="link-actions">
+      <button class="btn btn--primary btn--xl" id="btnCopy" type="button">
+        <span class="btn__icon" aria-hidden="true">⧉</span> 링크 복사
+      </button>
+      <a class="btn btn--ghost btn--xl" id="btnOpen" href="index.html" target="_blank" rel="noopener">새 탭에서 열기</a>
+    </div>
+
+    <p class="link-hint">복사한 링크를 단체 채팅방·메일로 공유하면 참가자들이 바로 접속할 수 있습니다. 같은 링크로 몇 명이든 동시에 참여할 수 있어요.</p>
+
+    <details class="qr-details" id="qrDetails">
+      <summary>QR 코드로 접속 <span class="summary-hint">(보조 수단)</span></summary>
+      <div class="qr-body">
+        <div class="qr-box" id="qrBox"></div>
+        <p class="qr-note">휴대폰 카메라로 스캔하면 같은 게임에 접속합니다.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 이번 라운드 인물 -->
+  <section class="panel panel--round">
+    <div class="panel__head">
+      <h2>이번 라운드 <span class="pill" id="roundBadge">라운드 1</span></h2>
+      <span class="panel__hint">모든 팀이 같은 16명으로 겨룹니다</span>
+    </div>
+    <div class="round-grid" id="roundGrid"></div>
+  </section>
+
+  <!-- 현황 -->
+  <section class="stats" aria-label="참가 현황">
+    <div class="stat"><span>참가 팀</span><b id="statTotal">0</b></div>
+    <div class="stat stat--done"><span>완료</span><b id="statDone">0</b></div>
+    <div class="stat stat--out"><span>탈락</span><b id="statOut">0</b></div>
+    <div class="stat stat--playing"><span>진행 중</span><b id="statPlaying">0</b></div>
+  </section>
+
+  <!-- 리더보드 -->
+  <section class="panel panel--board">
+    <div class="panel__head">
+      <h2>실시간 리더보드</h2>
+      <span class="panel__hint" id="boardHint">완료 버튼을 누른 순서대로 순위가 정해집니다</span>
+    </div>
+    <ol class="board-list" id="leaderboard"></ol>
+    <p class="empty" id="emptyBoard">아직 참가한 팀이 없습니다. 링크를 공유해 주세요.</p>
+  </section>
+
+  <!-- 운영 -->
+  <section class="panel panel--control">
+    <div class="panel__head"><h2>게임 운영</h2></div>
+    <div class="control-row">
+      <label class="control-field" for="previewSelect">
+        <span>미리보기 시간</span>
+        <select id="previewSelect">
+          <option value="4">4초</option>
+          <option value="5" selected>5초</option>
+          <option value="7">7초</option>
+          <option value="10">10초</option>
+          <option value="15">15초</option>
+        </select>
+      </label>
+      <button class="btn btn--danger" id="btnReset" type="button">새 라운드 시작 (초기화)</button>
+    </div>
+    <p class="note">초기화하면 순위 기록이 초기화되고, 모든 참가 팀의 잠금이 풀려 새 게임에 다시 참여할 수 있습니다. 참가 중인 팀은 자동으로 게임 화면에서 나가고, 이번 라운드의 인물 16명도 새로 뽑힙니다.</p>
+    <p class="note note--mono" id="sessionInfo"></p>
+  </section>
+
+  <!-- 후보 풀 -->
+  <section class="panel panel--pool">
+    <div class="panel__head">
+      <h2>인물 후보 풀 <span class="pill" id="poolCount">0명</span></h2>
+      <span class="panel__hint">매 판 새 게임마다 이 중에서 무작위로 16명이 뽑힙니다 · 노란 테두리 = 이번 라운드</span>
+    </div>
+    <div id="poolGroups" class="pool-groups"></div>
+  </section>
+
+  <!-- Firebase 안내 -->
+  <section class="panel panel--firebase" id="fbPanel" hidden>
+    <div class="panel__head">
+      <h2>여러 노트북에서 순위 공유하기</h2>
+      <span class="panel__hint">지금은 로컬 모드입니다</span>
+    </div>
+    <p class="note">현재 순위는 <b>이 브라우저에만</b> 저장됩니다. 팀별 노트북에서 순위를 실시간으로 함께 보려면 Firebase Realtime Database를 연결하세요. (무료, 5분)</p>
+    <p class="note">⚠️ 로컬 모드에서는 노트북마다 다른 인물 16명이 나올 수 있어 팀 간 공정한 대결이 어렵습니다. <b>여러 노트북으로 진행할 때는 꼭 Firebase를 연결해 주세요.</b></p>
+    <ol class="steps">
+      <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에서 새 프로젝트를 만들고 <b>Realtime Database</b>를 생성합니다.</li>
+      <li>데이터베이스 규칙을 테스트용으로 열어 둡니다. <code>{ "rules": { ".read": true, ".write": true } }</code></li>
+      <li>프로젝트 설정 → 내 앱(웹)에서 <code>firebaseConfig</code> 값을 복사합니다.</li>
+      <li><code>js/config.js</code>의 <code>firebase:</code> 항목에 붙여넣고 다시 배포합니다.</li>
+    </ol>
+    <p class="note">자세한 설명은 <code>README.md</code>에 있습니다.</p>
+  </section>
+
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="modal" id="resetModal" hidden>
+  <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+    <h2 id="resetTitle">새 라운드를 시작할까요?</h2>
+    <p>지금까지의 순위 기록이 초기화되고, 참가 팀의 잠금이 풀립니다.<br />인물 후보 풀에서 <b>16명을 새로 무작위로 뽑아</b> 다음 라운드를 시작합니다.</p>
+    <div class="modal__actions">
+      <button class="btn btn--ghost" id="btnCancelReset" type="button">취소</button>
+      <button class="btn btn--danger" id="btnConfirmReset" type="button">초기화</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js" onerror="window.__qrCdnFailed=true"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
