@@ -665,12 +665,29 @@
   /* --------------------------- 초기화 --------------------------- */
   var lastGameId = null;
 
+  function syncSessionUI(session) {
+    var sec = Math.max(3, Math.min(20, Number(session.previewSeconds) || 5));
+    var isSolo = Store.getPlayMode() === 'solo';
+    if ($('rulePreview')) $('rulePreview').textContent = String(sec);
+    if ($('rulePreviewMode')) {
+      $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
+        ? '12장씩 3번에 나눠서'
+        : '32장(16쌍)이 한 번에';
+    }
+    if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
+    if ($('introRound')) {
+      $('introRound').textContent = '라운드 ' + (Number(session.roundNo) || 1) +
+        ' · ' + (isSolo ? '개인전' : '팀전') +
+        ' · 후보 ' + CELEBS.length + '명 중 ' + PAIRS + '명 랜덤';
+    }
+    if ($('entryLabel')) $('entryLabel').textContent = isSolo ? '팀명 / 이름' : '팀 이름';
+    if ($('teamInputWrap')) $('teamInputWrap').hidden = isSolo;
+    if ($('soloInputWrap')) $('soloInputWrap').hidden = !isSolo;
+  }
+
   function handleSession(session) {
     var lock = readLock();
-    var sec = Math.max(3, Math.min(20, Number(session.previewSeconds) || 5));
-    $('rulePreview').textContent = String(sec);
-    $('introRound').textContent = '라운드 ' + (Number(session.roundNo) || 1) +
-      ' · 후보 ' + CELEBS.length + '명 중 ' + PAIRS + '명 랜덤';
+    syncSessionUI(session);
 
     var gameChanged = lastGameId !== null && lastGameId !== session.gameId;
     lastGameId = session.gameId;
