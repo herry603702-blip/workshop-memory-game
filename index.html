@@ -7,7 +7,7 @@
 <title>연예인 같은그림찾기 서바이벌</title>
 <meta name="description" content="워크샵용 모바일 웹 게임 · 32장의 카드에서 16쌍의 연예인을 한 번의 실수 없이 찾아라" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d17'/%3E%3Crect x='20' y='14' width='24' height='36' rx='5' fill='none' stroke='%23ffcf5c' stroke-width='4'/%3E%3Cpath d='M32 25v10' stroke='%23ffcf5c' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="css/style.css?v=11" />
+<link rel="stylesheet" href="css/style.css?v=12" />
 </head>
 <body data-screen="intro">
 
@@ -60,19 +60,20 @@
         <span class="hud__label">찾은 짝</span>
         <span class="hud__pairs"><b id="hudPairs">0</b><span class="muted" id="hudPairsTotal">/16</span></span>
       </div>
-      <div class="hud__status" id="hudStatus">카드를 두 장 뒤집어 같은 인물을 찾으세요</div>
+      <div class="hud__center">
+        <div class="hud__status" id="hudStatus">카드를 두 장 뒤집어 같은 인물을 찾으세요</div>
+        <div class="preview-banner" id="previewBanner" hidden>
+          <span class="preview-banner__label">미리보기</span>
+          <span class="preview-banner__time"><b id="previewCount">5</b><small>초</small></span>
+          <span class="preview-banner__bar"><i id="previewBar"></i></span>
+        </div>
+      </div>
       <div class="hud__group hud__group--right">
         <span class="turn-timer" id="turnTimer" hidden>⏱ 5.0s</span>
         <span class="hud__timer" id="hudTimer">00:00</span>
         <button class="icon-btn" id="btnSound" type="button" aria-pressed="true" title="소리 끄기" aria-label="소리 끄기">🔊</button>
       </div>
     </header>
-
-    <div class="preview-banner" id="previewBanner" hidden>
-      <span class="preview-banner__label">미리보기</span>
-      <span class="preview-banner__time"><b id="previewCount">5</b><small>초</small></span>
-      <span class="preview-banner__bar"><i id="previewBar"></i></span>
-    </div>
 
     <div class="board-wrap" id="boardWrap">
       <div class="board" id="board" role="grid" aria-label="카드 32장"></div>
@@ -99,8 +100,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/config.js?v=11"></script>
-<script src="js/store.js?v=11"></script>
-<script src="js/game.js?v=11"></script>
+<script src="js/config.js?v=12"></script>
+<script src="js/store.js?v=12"></script>
+<script src="js/game.js?v=12"></script>
 </body>
 </html>
