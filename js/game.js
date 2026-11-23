@@ -337,6 +337,7 @@
       $('hudStatus').textContent = '미리보기 — 12장씩 나눠서 잠깐 공개됩니다';
       $('gameHint').textContent = '촬영 방지를 위해 한 번에 최대 12장씩만 뒤집어 보여줍니다. 집중해서 기억하세요!';
       banner.hidden = false;
+      layoutBoard();
       countEl.textContent = String(sec);
       barEl.style.transition = 'none';
       barEl.style.transform = 'scaleX(1)';
@@ -381,6 +382,7 @@
         }
         state.cards.forEach(function (card) { card.classList.remove('is-flipped'); });
         $('previewBanner').hidden = true;
+        layoutBoard();
         beginPlay();
       }, totalMs + 220);
       return;
@@ -391,6 +393,7 @@
     $('hudStatus').textContent = '미리보기 — 그림을 기억하세요';
     $('gameHint').textContent = '미리보기 동안 32장의 그림이 모두 공개됩니다.';
     banner.hidden = false;
+    layoutBoard();
     countEl.textContent = String(sec);
     barEl.style.transition = 'none';
     barEl.style.transform = 'scaleX(1)';
@@ -426,6 +429,7 @@
     var wave = reduceMotion ? 0 : 16;
     $('hudStatus').textContent = '시작! 같은 인물 두 장을 찾으세요';
     $('previewBanner').hidden = true;
+    layoutBoard();
 
     state.cards.forEach(function (card, i) {
       later(function () { card.classList.remove('is-flipped'); }, i * wave);

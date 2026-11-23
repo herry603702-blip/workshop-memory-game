@@ -549,28 +549,26 @@ body[data-screen="game"]  #screenGame  { display: flex; }
   70% { transform: translateX(-3px); }
 }
 
-/* 미리보기 배너 */
+/* 미리보기 배너 (보드 위 별도 줄 — 사진 가림 없음) */
 .preview-banner {
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 6px 0 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 14px;
+  padding: 5px 14px;
   border-radius: 999px;
-  background: rgba(10, 13, 24, 0.86);
+  background: rgba(10, 13, 24, 0.9);
   border: 1px solid rgba(255, 207, 92, 0.45);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 6px rgba(255, 207, 92, 0.06);
-  backdrop-filter: blur(8px);
-  animation: bannerIn 0.3s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  animation: bannerIn 0.25s ease;
 }
+.preview-banner[hidden] { display: none; }
 
 @keyframes bannerIn {
-  from { opacity: 0; transform: translate(-50%, -8px); }
-  to   { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .preview-banner__label {
