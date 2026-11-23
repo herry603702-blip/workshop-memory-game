@@ -123,6 +123,12 @@
       var s = Store.getSession();
       $('introRound').textContent = '라운드 ' + (Number(s.roundNo) || 1) +
         ' · 후보 ' + CELEBS.length + '명 중 ' + PAIRS + '명 랜덤';
+      if ($('rulePreview')) $('rulePreview').textContent = String(Store.getPreviewSeconds());
+      if ($('rulePreviewMode')) {
+        $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
+          ? '12장씩 3번에 나눠서'
+          : '32장(16쌍)이 한 번에';
+      }
     } catch (e) { /* noop */ }
 
     if (lock) {
@@ -272,10 +278,79 @@
 
   function startPreview() {
     var sec = Store.getPreviewSeconds();
-    var wave = reduceMotion ? 0 : 26;
+    var pmode = Store.getPreviewMode();
+    state.phase = 'preview';
+    state.busy = true;
     var banner = $('previewBanner');
     var countEl = $('previewCount');
     var barEl = $('previewBar');
+
+    if (pmode === 'batch') {
+      var chunkSize = 12; // 12장씩 3번(12·12·8장) 나눠 공개 (촬영 방지)
+      var chunkCount = Math.ceil(CARDS / chunkSize);
+      var totalMs = Math.max(sec, 4) * 1000;
+      var slotMs = Math.floor(totalMs / chunkCount);
+
+      var indices = [];
+      for (var idx = 0; idx < CARDS; idx++) indices.push(idx);
+      for (var j = indices.length - 1; j > 0; j--) {
+        var r = Math.floor(Math.random() * (j + 1));
+        var tmp = indices[j]; indices[j] = indices[r]; indices[r] = tmp;
+      }
+
+      $('hudStatus').textContent = '미리보기 — 12장씩 나눠서 잠깐 공개됩니다';
+      $('gameHint').textContent = '촬영 방지를 위해 한 번에 최대 12장씩만 뒤집어 보여줍니다. 집중해서 기억하세요!';
+      banner.hidden = false;
+      countEl.textContent = String(sec);
+      barEl.style.transition = 'none';
+      barEl.style.transform = 'scaleX(1)';
+
+      requestAnimationFrame(function () {
+        barEl.style.transition = 'transform ' + (totalMs / 1000) + 's linear';
+        barEl.style.transform = 'scaleX(0)';
+      });
+
+      var bStart = Date.now();
+      state.previewInterval = setInterval(function () {
+        var remain = (totalMs - (Date.now() - bStart)) / 1000;
+        countEl.textContent = String(Math.max(0, Math.ceil(remain)));
+        if (remain <= 0) {
+          clearInterval(state.previewInterval);
+          state.previewInterval = null;
+        }
+      }, 100);
+
+      for (var g = 0; g < chunkCount; g++) {
+        (function (groupIdx) {
+          var slice = indices.slice(groupIdx * chunkSize, (groupIdx + 1) * chunkSize);
+          var openAt = groupIdx * slotMs;
+          var closeAt = (groupIdx + 1) * slotMs - 180;
+          later(function () {
+            slice.forEach(function (ci) {
+              if (state.cards[ci]) state.cards[ci].classList.add('is-flipped');
+            });
+          }, openAt);
+          later(function () {
+            slice.forEach(function (ci) {
+              if (state.cards[ci]) state.cards[ci].classList.remove('is-flipped');
+            });
+          }, closeAt);
+        })(g);
+      }
+
+      later(function () {
+        if (state.previewInterval) {
+          clearInterval(state.previewInterval);
+          state.previewInterval = null;
+        }
+        state.cards.forEach(function (card) { card.classList.remove('is-flipped'); });
+        $('previewBanner').hidden = true;
+        beginPlay();
+      }, totalMs + 220);
+      return;
+    }
+
+    var wave = reduceMotion ? 0 : 26;
 
     $('hudStatus').textContent = '미리보기 — 그림을 기억하세요';
     $('gameHint').textContent = '미리보기 동안 32장의 그림이 모두 공개됩니다.';

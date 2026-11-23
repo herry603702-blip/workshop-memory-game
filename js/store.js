@@ -66,6 +66,7 @@
       gameId: newGameId(),
       roundNo: 1,
       previewSeconds: sec,
+      previewMode: 'all',
       roundIds: pickRoundIds(),
       updatedAt: Date.now()
     };
@@ -239,6 +240,11 @@
       return Math.max(3, Math.min(20, Number(s.previewSeconds) || 5));
     },
 
+    getPreviewMode: function () {
+      var s = this.getSession();
+      return s.previewMode === 'batch' ? 'batch' : 'all';
+    },
+
     listTeams: function () { return currentTeams(); },
 
     /* 팀 생성 → { id, name } */
@@ -318,6 +324,7 @@
         gameId: newGameId(),
         roundNo: (Number(cur.roundNo) || 1) + 1,
         previewSeconds: this.getPreviewSeconds(),
+        previewMode: this.getPreviewMode(),
         roundIds: pickRoundIds(),
         updatedAt: Date.now(),
         resetAt: Date.now()
@@ -331,6 +338,7 @@
         gameId: next.gameId,
         roundNo: next.roundNo,
         previewSeconds: next.previewSeconds,
+        previewMode: next.previewMode,
         roundIds: next.roundIds,
         resetAt: fb.database.ServerValue.TIMESTAMP
       };
@@ -346,6 +354,17 @@
         return Promise.resolve(sec);
       }
       return db.ref('session').update({ previewSeconds: sec }).then(function () { return sec; });
+    },
+
+    /* 미리보기 방식 변경 (관리자): 'all' | 'batch' */
+    setPreviewMode: function (pm) {
+      pm = (pm === 'batch') ? 'batch' : 'all';
+      if (mode === 'local') {
+        session = Object.assign({}, session, { previewMode: pm, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(pm);
+      }
+      return db.ref('session').update({ previewMode: pm }).then(function () { return pm; });
     },
 
     rankOf: rankOf
