@@ -483,24 +483,35 @@
 
   function endByTimeout() {
     if (state.phase !== 'play') return;
-    state.phase = 'over';
+    var finalPairs = state.matched;
+    state.phase = 'saving';
     state.busy = true;
     clearTimers();
-    Sound.wrong();
+
+    var btn = $('btnComplete');
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.remove('is-ready');
+      btn.textContent = '시간 초과 · 기록 중…';
+    }
+    $('hudStatus').textContent = '시간 초과! 현재까지 맞춘 쌍으로 순위를 등록합니다…';
 
     var elapsed = state.startAt ? Date.now() - state.startAt : 0;
-    var lock = readLock();
-    if (lock) { lock.status = 'out'; lock.pairs = state.matched; writeLock(lock); }
-    if (state.team) Store.failTeam(state.team.id, state.matched, 'timeout');
-
-    showOverlay({
-      emoji: '⏰',
-      title: '시간 초과! 탈락!',
-      win: false,
-      body:
-        '한 쌍을 <b>' + Store.getTurnLimitSeconds() + '초</b> 안에 찾지 못했습니다.<br />' +
-        '찾은 짝 <b>' + state.matched + '/' + PAIRS + '</b> · 도전 시간 <b>' + fmt(elapsed) + '</b><br />' +
-        '사회자가 초기화하면 다시 도전할 수 있습니다.'
+    Store.completeTeam(state.team.id, finalPairs, elapsed).then(function (res) {
+      var lock = readLock();
+      if (lock) {
+        lock.status = 'done';
+        lock.pairs = finalPairs;
+        lock.rank = res.rank || null;
+        writeLock(lock);
+      }
+      state.phase = 'over';
+      Sound.match();
+      showDone(res.rank, res.total, elapsed, finalPairs, true);
+    }).catch(function (err) {
+      console.error(err);
+      state.phase = 'over';
+      toast('순위 기록에 실패했습니다. 새로고침하지 말고 사회자에게 알려주세요.');
     });
   }
 
@@ -579,7 +590,7 @@
     });
   }
 
-  function showDone(rank, total, elapsed, finalPairs) {
+  function showDone(rank, total, elapsed, finalPairs, timedOut) {
     var pairsDone = typeof finalPairs === 'number' ? finalPairs : PAIRS;
     var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
     var rankHtml;
@@ -592,9 +603,13 @@
       rankHtml = '';
     }
 
+    var titleText = timedOut
+      ? '시간 초과 · 기록 완료!'
+      : (pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!');
+
     showOverlay({
-      emoji: '🏆',
-      title: pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!',
+      emoji: timedOut ? '⏰' : '🏆',
+      title: titleText,
       win: true,
       html:
         rankHtml +
