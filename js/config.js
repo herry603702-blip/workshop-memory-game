@@ -6,8 +6,8 @@ window.GAME_CONFIG = {
   /* 관리자 화면에서 설정한 값이 없을 때 쓰이는 기본 미리보기 시간(초) */
   defaultPreviewSeconds: 5,
 
-  /* 한 판에 쓰는 인물 수 (= 카드 32장) */
-  cardsPerRound: 16,
+  /* 한 판에 쓰는 인물 수 (= 카드 16장, 4×4) */
+  cardsPerRound: 8,
 
   /* 분류 이름 (관리자 화면·보고서 표기용) */
   groups: {

@@ -5,7 +5,7 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var gameUrl = new URL('index.html?v=19', location.href).href.split('#')[0];
+  var gameUrl = new URL('index.html?v=20', location.href).href.split('#')[0];
   var qrRendered = false;
 
   function esc(str) {
@@ -92,7 +92,10 @@
     var list = window.Store.listTeams().slice();
     var done = list.filter(function (t) { return t.status === 'done'; })
       .sort(function (a, b) {
-        return ((b.pairs || 0) - (a.pairs || 0)) || ((a.completedAt || 0) - (b.completedAt || 0)) || (a.id < b.id ? -1 : 1);
+        return ((b.pairs || 0) - (a.pairs || 0)) ||
+          ((a.mistakes || 0) - (b.mistakes || 0)) ||
+          ((a.completedAt || 0) - (b.completedAt || 0)) ||
+          (a.id < b.id ? -1 : 1);
       });
     var playing = list.filter(function (t) { return t.status === 'playing'; })
       .sort(function (a, b) { return (a.startedAt || 0) - (b.startedAt || 0); });
@@ -121,7 +124,7 @@
         if (rank === 1) cls += ' row--podium';
         else if (rank === 2) cls += ' row--podium row--second';
         else if (rank === 3) cls += ' row--podium row--third';
-        meta = (t.pairs || 0) + '/16쌍' + (t.elapsedMs ? ' · ' + fmt(t.elapsedMs) : '');
+        meta = (t.pairs || 0) + '/8쌍 · 오답 ' + (t.mistakes || 0) + '회' + (t.elapsedMs ? ' · ' + fmt(t.elapsedMs) : '');
         tag = '<span class="tag tag--done">완료</span>';
       } else if (t.status === 'out') {
         meta = '찾은 짝 ' + (t.pairs || 0) + '/16';
@@ -246,7 +249,7 @@
     $('sessionInfo').textContent = '게임 세션 ' + String(s.gameId).slice(0, 10) +
       ' · 라운드 ' + (Number(s.roundNo) || 1) +
       ' · ' + (playM === 'solo' ? '개인전' : '팀전') +
-      ' · ' + (pm === 'batch' ? '12장씩 분할' : '32장 전체') +
+      ' · ' + (pm === 'batch' ? '8장씩 분할' : '16장 전체') +
       ' ' + (s.previewSeconds || 5) + '초' +
       ' · 제한 ' + tl + '초' +
       ' · ' + (hc > 0 ? '힌트 ' + hc + '회(' + hs + '초)' : '힌트 없음');

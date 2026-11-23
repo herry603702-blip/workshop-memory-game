@@ -7,7 +7,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var CFG = window.GAME_CONFIG || {};
   var CELEBS = CFG.celebrities || [];
-  var PAIRS = CFG.cardsPerRound || 16;   // 한 판 16쌍 = 32장
+  var PAIRS = CFG.cardsPerRound || 8;    // 한 판 8쌍 = 16장 (4×4)
   var CARDS = PAIRS * 2;
   var LOCK_KEY = 'wsg:lock';
   var SOUND_KEY = 'wsg:sound';
@@ -23,6 +23,7 @@
     second: null,
     busy: true,
     matched: 0,
+    mistakes: 0,
     startAt: 0,
     timerId: null,
     timeouts: [],
@@ -166,8 +167,8 @@
       if ($('rulePreview')) $('rulePreview').textContent = String(Store.getPreviewSeconds());
       if ($('rulePreviewMode')) {
         $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
-          ? '12장씩 3번에 나눠서'
-          : '32장(16쌍)이 한 번에';
+          ? '8장씩 2번에 나눠서'
+          : '16장(8쌍)이 한 번에';
       }
       if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
     } catch (e) { /* noop */ }
@@ -202,7 +203,7 @@
     var h = wrap.clientHeight - padY;
     if (!w || !h) return;
 
-    var cols = window.innerWidth <= 820 ? 4 : 8;
+    var cols = 4; // 4×4 (16장) 고정
     var rows = Math.ceil(CARDS / cols);
     var gap = Math.max(4, Math.min(12, Math.round(Math.min(w / (cols * 16), h / (rows * 16)))));
     var cellW = (w - gap * (cols - 1)) / cols;
@@ -286,6 +287,8 @@
       state.roundIds = ids;
       state.team = team;
       state.matched = 0;
+      state.mistakes = 0;
+      if ($('hudMistakes')) $('hudMistakes').textContent = '0';
       state.hintsLeft = Store.getHintCount();
       state.first = state.second = null;
       state.phase = 'preview';
@@ -332,7 +335,7 @@
     var barEl = $('previewBar');
 
     if (pmode === 'batch') {
-      var chunkSize = 12; // 12장씩 3번(12·12·8장) 나눠 공개 (촬영 방지)
+      var chunkSize = 8; // 8장씩 2번 나눠 공개 (촬영 방지)
       var chunkCount = Math.ceil(CARDS / chunkSize);
       var totalMs = Math.max(sec, 4) * 1000;
       var slotMs = Math.floor(totalMs / chunkCount);
@@ -534,12 +537,21 @@
   }
 
   function resolveFail(a, b) {
-    $('btnComplete').disabled = true;
+    state.mistakes = (state.mistakes || 0) + 1;
+    if ($('hudMistakes')) $('hudMistakes').textContent = String(state.mistakes);
     a.classList.add('is-wrong');
     b.classList.add('is-wrong');
     Sound.wrong();
-    $('hudStatus').textContent = '다른 그림이 나왔습니다…';
-    later(function () { endByFail(a, b); }, 1000);
+    $('hudStatus').textContent = '다른 그림! (오답 ' + state.mistakes + '회) 계속 찾으세요';
+    later(function () {
+      a.classList.remove('is-flipped', 'is-wrong');
+      b.classList.remove('is-flipped', 'is-wrong');
+      state.first = state.second = null;
+      if (state.phase === 'play') {
+        state.busy = false;
+        startTurnTimer();
+      }
+    }, 550);
   }
 
   function endByTimeout() {
@@ -558,17 +570,18 @@
     $('hudStatus').textContent = '시간 초과! 현재까지 맞춘 쌍으로 순위를 등록합니다…';
 
     var elapsed = state.startAt ? Date.now() - state.startAt : 0;
-    Store.completeTeam(state.team.id, finalPairs, elapsed).then(function (res) {
+    Store.completeTeam(state.team.id, finalPairs, elapsed, state.mistakes).then(function (res) {
       var lock = readLock();
       if (lock) {
         lock.status = 'done';
         lock.pairs = finalPairs;
+        lock.mistakes = state.mistakes;
         lock.rank = res.rank || null;
         writeLock(lock);
       }
       state.phase = 'over';
       Sound.match();
-      showDone(res.rank, res.total, elapsed, finalPairs, 'timeout');
+      showDone(res.rank, res.total, elapsed, finalPairs, 'timeout', state.mistakes);
     }).catch(function (err) {
       console.error(err);
       state.phase = 'over';
@@ -628,16 +641,17 @@
     var elapsed = Date.now() - state.startAt;
     clearTimers();
 
-    Store.completeTeam(state.team.id, finalPairs, elapsed).then(function (res) {
+    Store.completeTeam(state.team.id, finalPairs, elapsed, state.mistakes).then(function (res) {
       var lock = readLock();
       if (lock) {
         lock.status = 'done';
         lock.pairs = finalPairs;
+        lock.mistakes = state.mistakes;
         lock.rank = res.rank || null;
         writeLock(lock);
       }
       state.phase = 'over';
-      showDone(res.rank, res.total, elapsed, finalPairs);
+      showDone(res.rank, res.total, elapsed, finalPairs, null, state.mistakes);
     }).catch(function (err) {
       console.error(err);
       state.phase = prevPhase;
@@ -653,8 +667,9 @@
     });
   }
 
-  function showDone(rank, total, elapsed, finalPairs, endReason) {
+  function showDone(rank, total, elapsed, finalPairs, endReason, mistakes) {
     var pairsDone = typeof finalPairs === 'number' ? finalPairs : PAIRS;
+    var wrongCount = typeof mistakes === 'number' ? mistakes : (state.mistakes || 0);
     var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
     var rankHtml;
     if (rank && rank <= 10) {
@@ -670,7 +685,7 @@
       ? '시간 초과 · 기록 완료!'
       : endReason === 'wrong'
         ? '오답 종료 · 기록 완료!'
-        : (pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!');
+        : (pairsDone >= PAIRS ? PAIRS + '쌍 모두 완료!' : '기록 완료!');
 
     var emojiIcon = endReason === 'timeout' ? '⏰' : (endReason === 'wrong' ? '😵' : '🏆');
 
@@ -682,6 +697,7 @@
         rankHtml +
         '<dl class="result-grid">' +
           '<div><dt>찾은 짝</dt><dd>' + pairsDone + ' / ' + PAIRS + '</dd></div>' +
+          '<div><dt>오답 횟수</dt><dd>' + wrongCount + '회</dd></div>' +
           '<div><dt>도전 시간</dt><dd>' + fmt(elapsed) + '</dd></div>' +
         '</dl>' +
         '<p style="margin:0">' + (total ? '지금까지 <b>' + total + '팀</b>이 완료했습니다.' : '') + '</p>',
@@ -723,8 +739,8 @@
     if ($('rulePreview')) $('rulePreview').textContent = String(sec);
     if ($('rulePreviewMode')) {
       $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
-        ? '12장씩 3번에 나눠서'
-        : '32장(16쌍)이 한 번에';
+        ? '8장씩 2번에 나눠서'
+        : '16장(8쌍)이 한 번에';
     }
     if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
     if ($('introRound')) {

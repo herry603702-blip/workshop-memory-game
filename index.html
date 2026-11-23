@@ -8,9 +8,9 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>캐릭터 같은그림찾기 서바이벌</title>
-<meta name="description" content="워크샵용 웹 게임 · 32장의 카드에서 16쌍의 캐릭터를 찾아라" />
+<meta name="description" content="워크샵용 웹 게임 · 16장(4×4) 카드에서 8쌍의 캐릭터를 찾아라" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d17'/%3E%3Crect x='20' y='14' width='24' height='36' rx='5' fill='none' stroke='%23ffcf5c' stroke-width='4'/%3E%3Cpath d='M32 25v10' stroke='%23ffcf5c' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="css/style.css?v=19" />
+<link rel="stylesheet" href="css/style.css?v=20" />
 </head>
 <body data-screen="intro">
 
@@ -25,7 +25,7 @@
       </div>
 
       <h1 class="intro-title">캐릭터<br /><span>같은그림찾기</span></h1>
-      <p class="intro-sub">32장의 카드에서 16쌍의 캐릭터를 찾아라</p>
+      <p class="intro-sub">4×4(16장) 카드에서 8쌍의 캐릭터를 찾아라</p>
       <p class="intro-round" id="introRound"></p>
 
       <form id="startForm" class="start-form" autocomplete="off" novalidate>
@@ -52,10 +52,10 @@
       </div>
 
       <ul class="rules">
-        <li><b>1) 미리보기:</b> 시작 시 <b id="rulePreview">5</b>초 동안 <b id="rulePreviewMode">32장(16쌍)이 한 번에</b> 공개된 뒤 덮입니다.</li>
-        <li><b>2) 서바이벌:</b> 한 쌍(2장)당 <b id="ruleTurnLimit">5</b>초 제한! <b>오답 또는 시간 초과 시</b> 게임이 끝나며 <b>지금까지 맞춘 쌍 수로 순위에 등록</b>됩니다.</li>
-        <li><b>3) 중간 완료:</b> 더 못 찾겠으면 끝나기 전에 <b>중간 완료</b>를 눌러 기록을 확정할 수 있습니다. (동점 시 먼저 완료한 팀 우선!)</li>
-        <li><b>4) 순위 기준:</b> <b>맞춘 쌍 수 많은 순</b> → 같으면 <b>완료 버튼 선착순</b>으로 전체 순위 결정!</li>
+        <li><b>1) 미리보기:</b> 시작 시 <b id="rulePreview">5</b>초 동안 <b id="rulePreviewMode">16장(8쌍)이 한 번에</b> 공개된 뒤 덮입니다.</li>
+        <li><b>2) 도전 방식:</b> 한 쌍(2장)당 <b id="ruleTurnLimit">5</b>초 제한! <b>틀려도 게임은 계속</b> 진행되지만, <b>오답 횟수</b>가 순위에 반영됩니다. (시간 초과 시 현재 점수로 완료)</li>
+        <li><b>3) 중간 완료:</b> 더 못 찾겠으면 <b>중간 완료</b>로 기록을 확정할 수 있고, 힌트가 있으면 못 맞춘 카드를 잠깐 볼 수 있습니다.</li>
+        <li><b>4) 순위 기준:</b> <b>맞춘 쌍 많은 순</b> → <b>오답 적은 순</b> → <b>먼저 완료한 순</b>으로 전체 순위 결정!</li>
       </ul>
 
       <p class="intro-foot">더 맞힐지, 지금 완료할지 눈치 싸움이 핵심 🥇</p>
@@ -68,7 +68,8 @@
       <div class="hud__group hud__group--left">
         <span class="team-chip" id="hudTeam">팀</span>
         <span class="hud__label">찾은 짝</span>
-        <span class="hud__pairs"><b id="hudPairs">0</b><span class="muted" id="hudPairsTotal">/16</span></span>
+        <span class="hud__pairs"><b id="hudPairs">0</b><span class="muted" id="hudPairsTotal">/8</span></span>
+        <span class="hud__pairs" style="margin-left:6px;font-size:13px;">오답 <b id="hudMistakes" style="color:#ff7b7b;">0</b></span>
       </div>
       <div class="hud__center">
         <div class="hud__status" id="hudStatus">카드를 두 장 뒤집어 같은 인물을 찾으세요</div>
@@ -86,7 +87,7 @@
     </header>
 
     <div class="board-wrap" id="boardWrap">
-      <div class="board" id="board" role="grid" aria-label="카드 32장"></div>
+      <div class="board" id="board" role="grid" aria-label="카드 16장"></div>
     </div>
 
     <footer class="gamebar">
@@ -113,8 +114,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/config.js?v=19"></script>
-<script src="js/store.js?v=19"></script>
-<script src="js/game.js?v=19"></script>
+<script src="js/config.js?v=20"></script>
+<script src="js/store.js?v=20"></script>
+<script src="js/game.js?v=20"></script>
 </body>
 </html>

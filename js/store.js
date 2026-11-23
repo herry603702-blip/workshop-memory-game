@@ -42,7 +42,7 @@
   }
 
   function pickRoundIds() {
-    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 16;
+    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
     var ids = poolIds().slice();
     for (var i = ids.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -53,7 +53,7 @@
 
   function validRoundIds(ids) {
     var pool = poolIds();
-    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 16;
+    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
     if (!Array.isArray(ids)) return null;
     var clean = ids.filter(function (id) { return pool.indexOf(id) >= 0; });
     var uniq = clean.filter(function (id, i) { return clean.indexOf(id) === i; });
@@ -91,12 +91,15 @@
     return list;
   }
 
-  /* 순위: 맞춘 쌍 수(pairs) 내림차순 → 완료(completedAt) 오름차순 → id 순 */
+  /* 순위: 맞춘 쌍(pairs) 내림차순 → 오답(mistakes) 오름차순 → 완료(completedAt) 오름차순 → id 순 */
   function rankOf(teamId) {
     var done = currentTeams().filter(function (t) {
       return t.status === 'done' && typeof t.completedAt === 'number';
     }).sort(function (a, b) {
-      return ((b.pairs || 0) - (a.pairs || 0)) || (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1);
+      return ((b.pairs || 0) - (a.pairs || 0)) ||
+        ((a.mistakes || 0) - (b.mistakes || 0)) ||
+        (a.completedAt - b.completedAt) ||
+        (a.id < b.id ? -1 : 1);
     });
     var idx = done.findIndex(function (t) { return t.id === teamId; });
     return { rank: idx >= 0 ? idx + 1 : null, total: done.length };
@@ -319,17 +322,18 @@
     },
 
     /* 완료 처리 → { rank, total, completedAt } */
-    completeTeam: function (id, pairs, elapsedMs) {
+    completeTeam: function (id, pairs, elapsedMs, mistakes) {
       var self = this;
+      var m = Math.max(0, Math.round(Number(mistakes) || 0));
       if (mode === 'local') {
         var ts = Date.now();
-        if (teams[id]) { teams[id] = Object.assign({}, teams[id], { status: 'done', pairs: pairs, completedAt: ts, elapsedMs: elapsedMs }); }
+        if (teams[id]) { teams[id] = Object.assign({}, teams[id], { status: 'done', pairs: pairs, mistakes: m, completedAt: ts, elapsedMs: elapsedMs }); }
         writeLocalTeams(); broadcast('teams'); emit('teams', currentTeams());
         var r = rankOf(id);
         return Promise.resolve({ rank: r.rank, total: r.total, completedAt: ts });
       }
       return db.ref('teams/' + id).update({
-        status: 'done', pairs: pairs, elapsedMs: elapsedMs,
+        status: 'done', pairs: pairs, mistakes: m, elapsedMs: elapsedMs,
         completedAt: fb.database.ServerValue.TIMESTAMP
       }).then(function () {
         return db.ref('teams/' + id).once('value');
@@ -341,7 +345,12 @@
           emit('teams', currentTeams());
           var done = currentTeams().filter(function (t) {
             return t.status === 'done' && typeof t.completedAt === 'number';
-          }).sort(function (a, b) { return ((b.pairs || 0) - (a.pairs || 0)) || (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1); });
+          }).sort(function (a, b) {
+            return ((b.pairs || 0) - (a.pairs || 0)) ||
+              ((a.mistakes || 0) - (b.mistakes || 0)) ||
+              (a.completedAt - b.completedAt) ||
+              (a.id < b.id ? -1 : 1);
+          });
           var idx = done.findIndex(function (t) { return t.id === id; });
           return { rank: idx >= 0 ? idx + 1 : null, total: done.length, completedAt: ts };
         });
