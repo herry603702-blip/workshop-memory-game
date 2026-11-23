@@ -11,60 +11,52 @@ window.GAME_CONFIG = {
 
   /* 분류 이름 (관리자 화면·보고서 표기용) */
   groups: {
-    actor: '영화배우',
-    comedy: '개그맨·방송인',
-    president: '역대 대통령',
-    global: '글로벌·재계'
+    pokemon: '포켓몬',
+    anime: '애니메이션',
+    disney: '디즈니 · 픽사 · 히어로',
+    game: '게임 캐릭터'
   },
 
   /* =======================================================
-     인물 후보 풀 — 매 판 이 중에서 무작위로 16명을 뽑습니다.
+     캐릭터 후보 풀 — 매 판 이 중에서 무작위로 16종을 뽑습니다.
      사진: images/celeb_NN.jpg (NN = id)
      ======================================================= */
   celebrities: [
-    /* ---------- 영화배우 (15) ---------- */
-    { id: 1,  name: '송강호',  group: 'actor' },
-    { id: 2,  name: '마동석',  group: 'actor' },
-    { id: 3,  name: '황정민',  group: 'actor' },
-    { id: 4,  name: '최민식',  group: 'actor' },
-    { id: 5,  name: '이병헌',  group: 'actor' },
-    { id: 6,  name: '유해진',  group: 'actor' },
-    { id: 7,  name: '하정우',  group: 'actor' },
-    { id: 8,  name: '공유',    group: 'actor' },
-    { id: 17, name: '이정재',  group: 'actor' },
-    { id: 18, name: '정우성',  group: 'actor' },
-    { id: 19, name: '설경구',  group: 'actor' },
-    { id: 20, name: '김윤석',  group: 'actor' },
-    { id: 21, name: '김혜수',  group: 'actor' },
-    { id: 22, name: '손예진',  group: 'actor' },
-    { id: 23, name: '전도연',  group: 'actor' },
+    /* ---------- 포켓몬 (8) ---------- */
+    { id: 1,  name: '피카츄',   group: 'pokemon' },
+    { id: 2,  name: '꼬부기',   group: 'pokemon' },
+    { id: 3,  name: '파이리',   group: 'pokemon' },
+    { id: 4,  name: '이상해씨', group: 'pokemon' },
+    { id: 5,  name: '잠만보',   group: 'pokemon' },
+    { id: 6,  name: '푸린',     group: 'pokemon' },
+    { id: 25, name: '고라파덕', group: 'pokemon' },
+    { id: 26, name: '이브이',   group: 'pokemon' },
 
-    /* ---------- 개그맨 · 방송인 (10) ---------- */
-    { id: 9,  name: '유재석',  group: 'comedy' },
-    { id: 10, name: '강호동',  group: 'comedy' },
-    { id: 11, name: '신동엽',  group: 'comedy' },
-    { id: 12, name: '박명수',  group: 'comedy' },
-    { id: 13, name: '이수근',  group: 'comedy' },
-    { id: 14, name: '장도연',  group: 'comedy' },
-    { id: 15, name: '조세호',  group: 'comedy' },
-    { id: 16, name: '김준현',  group: 'comedy' },
-    { id: 24, name: '박나래',  group: 'comedy' },
-    { id: 25, name: '이경규',  group: 'comedy' },
+    /* ---------- 애니메이션 (8) ---------- */
+    { id: 7,  name: '도라에몽', group: 'anime' },
+    { id: 8,  name: '짱구',     group: 'anime' },
+    { id: 9,  name: '헬로키티', group: 'anime' },
+    { id: 13, name: '스펀지밥', group: 'anime' },
+    { id: 14, name: '뚱이',     group: 'anime' },
+    { id: 16, name: '토토로',   group: 'anime' },
+    { id: 19, name: '스누피',   group: 'anime' },
+    { id: 20, name: '가필드',   group: 'anime' },
+    { id: 21, name: '호머심슨', group: 'anime' },
 
-    /* ---------- 역대 대통령 (8) ---------- */
-    { id: 26, name: '이승만',  group: 'president' },
-    { id: 27, name: '박정희',  group: 'president' },
-    { id: 28, name: '김영삼',  group: 'president' },
-    { id: 29, name: '김대중',  group: 'president' },
-    { id: 30, name: '노무현',  group: 'president' },
-    { id: 31, name: '이명박',  group: 'president' },
-    { id: 32, name: '박근혜',  group: 'president' },
-    { id: 33, name: '문재인',  group: 'president' },
+    /* ---------- 디즈니 · 픽사 · 히어로 (8) ---------- */
+    { id: 10, name: '미키마우스', group: 'disney' },
+    { id: 11, name: '도널드덕',   group: 'disney' },
+    { id: 12, name: '곰돌이푸',   group: 'disney' },
+    { id: 22, name: '슈렉',       group: 'disney' },
+    { id: 23, name: '올라프',     group: 'disney' },
+    { id: 24, name: '미니언',     group: 'disney' },
+    { id: 27, name: '스파이더맨', group: 'disney' },
+    { id: 28, name: '아이언맨',   group: 'disney' },
 
-    /* ---------- 글로벌 · 재계 (3) ---------- */
-    { id: 34, name: '이재용',  group: 'global' },
-    { id: 35, name: '트럼프',  group: 'global' },
-    { id: 36, name: '젠슨 황', group: 'global' }
+    /* ---------- 게임 캐릭터 (3) ---------- */
+    { id: 15, name: '슈퍼마리오', group: 'game' },
+    { id: 17, name: '커비',       group: 'game' },
+    { id: 18, name: '소닉',       group: 'game' }
   ],
 
   /* =======================================================
