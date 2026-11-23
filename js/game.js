@@ -328,8 +328,13 @@
     state.phase = 'play';
     state.busy = false;
     state.startAt = Date.now();
-    $('gameHint').textContent = '같은 인물 두 장을 차례로 누르세요. 한 번의 실수가 곧 탈락입니다.';
+    $('gameHint').textContent = '한 번 틀리면 탈락! 더 못 찾겠으면 탈락 전에 "중간 완료"로 현재 점수를 확정하세요.';
     $('hudStatus').textContent = '카드를 두 장 뒤집어 같은 인물을 찾으세요';
+
+    var btn = $('btnComplete');
+    btn.disabled = false;
+    btn.classList.remove('is-ready');
+    btn.textContent = '중간 완료 (0/' + PAIRS + '쌍)';
 
     state.timerId = setInterval(function () {
       $('hudTimer').textContent = fmt(Date.now() - state.startAt);
@@ -351,10 +356,12 @@
     } else {
       state.busy = false;
       $('hudStatus').textContent = '좋아요! 다음 짝을 찾으세요';
+      $('btnComplete').textContent = '중간 완료 (' + state.matched + '/' + PAIRS + '쌍)';
     }
   }
 
   function resolveFail(a, b) {
+    $('btnComplete').disabled = true;
     a.classList.add('is-wrong');
     b.classList.add('is-wrong');
     Sound.wrong();
@@ -398,8 +405,11 @@
   }
 
   function submitComplete() {
-    if (state.phase !== 'ready') return;
+    if (state.phase !== 'play' && state.phase !== 'ready') return;
+    var prevPhase = state.phase;
+    var finalPairs = state.matched;
     state.phase = 'saving';
+    state.busy = true;
 
     var btn = $('btnComplete');
     btn.disabled = true;
@@ -409,46 +419,52 @@
     var elapsed = Date.now() - state.startAt;
     clearTimers();
 
-    Store.completeTeam(state.team.id, PAIRS, elapsed).then(function (res) {
+    Store.completeTeam(state.team.id, finalPairs, elapsed).then(function (res) {
       var lock = readLock();
       if (lock) {
         lock.status = 'done';
-        lock.pairs = PAIRS;
+        lock.pairs = finalPairs;
         lock.rank = res.rank || null;
         writeLock(lock);
       }
       state.phase = 'over';
-      showDone(res.rank, res.total, elapsed);
+      showDone(res.rank, res.total, elapsed, finalPairs);
     }).catch(function (err) {
       console.error(err);
-      state.phase = 'ready';
+      state.phase = prevPhase;
+      state.busy = false;
       btn.disabled = false;
-      btn.classList.add('is-ready');
-      btn.textContent = '완료';
+      if (prevPhase === 'ready') {
+        btn.classList.add('is-ready');
+        btn.textContent = '완료';
+      } else {
+        btn.textContent = '중간 완료 (' + finalPairs + '/' + PAIRS + '쌍)';
+      }
       toast('순위 기록에 실패했습니다. 다시 눌러 주세요.');
     });
   }
 
-  function showDone(rank, total, elapsed) {
+  function showDone(rank, total, elapsed, finalPairs) {
+    var pairsDone = typeof finalPairs === 'number' ? finalPairs : PAIRS;
     var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
     var rankHtml;
     if (rank && rank <= 3) {
       rankHtml = '<div class="big-rank"><span>' + rank + '등</span><small>' + medal + '</small></div>';
     } else if (rank) {
-      rankHtml = '<div class="big-rank"><span>' + rank + '등</span><small>완주</small></div>' +
-        '<p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-faint)">아쉽게 순위권 밖이지만 16쌍을 모두 찾았습니다!</p>';
+      rankHtml = '<div class="big-rank"><span>' + rank + '등</span><small>' + (pairsDone >= PAIRS ? '완주' : '완료') + '</small></div>' +
+        '<p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-faint)">아쉽게 3위권 밖이지만 기록이 확정되었습니다!</p>';
     } else {
       rankHtml = '';
     }
 
     showOverlay({
       emoji: '🏆',
-      title: '완료!',
+      title: pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!',
       win: true,
       html:
         rankHtml +
         '<dl class="result-grid">' +
-          '<div><dt>찾은 짝</dt><dd>' + PAIRS + ' / ' + PAIRS + '</dd></div>' +
+          '<div><dt>찾은 짝</dt><dd>' + pairsDone + ' / ' + PAIRS + '</dd></div>' +
           '<div><dt>도전 시간</dt><dd>' + fmt(elapsed) + '</dd></div>' +
         '</dl>' +
         '<p style="margin:0">' + (total ? '지금까지 <b>' + total + '팀</b>이 완료했습니다.' : '') + '</p>',

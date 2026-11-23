@@ -91,7 +91,9 @@
   function sortedTeams() {
     var list = window.Store.listTeams().slice();
     var done = list.filter(function (t) { return t.status === 'done'; })
-      .sort(function (a, b) { return ((a.completedAt || 0) - (b.completedAt || 0)) || (a.id < b.id ? -1 : 1); });
+      .sort(function (a, b) {
+        return ((b.pairs || 0) - (a.pairs || 0)) || ((a.completedAt || 0) - (b.completedAt || 0)) || (a.id < b.id ? -1 : 1);
+      });
     var playing = list.filter(function (t) { return t.status === 'playing'; })
       .sort(function (a, b) { return (a.startedAt || 0) - (b.startedAt || 0); });
     var out = list.filter(function (t) { return t.status === 'out'; })
@@ -116,7 +118,7 @@
         if (rank === 1) cls += ' row--podium';
         else if (rank === 2) cls += ' row--podium row--second';
         else if (rank === 3) cls += ' row--podium row--third';
-        meta = t.elapsedMs ? fmt(t.elapsedMs) : clock(t.completedAt);
+        meta = (t.pairs || 0) + '/16쌍' + (t.elapsedMs ? ' · ' + fmt(t.elapsedMs) : '');
         tag = '<span class="tag tag--done">완료</span>';
       } else if (t.status === 'out') {
         meta = '찾은 짝 ' + (t.pairs || 0) + '/16';
@@ -143,8 +145,8 @@
     $('statPlaying').textContent = String(s.playing.length);
 
     $('boardHint').textContent = s.done.length
-      ? '완료 ' + s.done.length + '팀 · 완료 버튼을 누른 순서대로 순위가 정해집니다'
-      : '완료 버튼을 누른 순서대로 순위가 정해집니다';
+      ? '완료 ' + s.done.length + '팀 · 맞춘 쌍 많은 순 → 같으면 선착순으로 순위가 정해집니다'
+      : '맞춘 쌍 많은 순 → 같으면 완료 버튼 선착순으로 순위가 정해집니다';
   }
 
   /* --------------------------- 인물 목록 --------------------------- */

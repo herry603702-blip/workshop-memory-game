@@ -86,12 +86,12 @@
     return list;
   }
 
-  /* 순위: 완료(completedAt) 오름차순, 동일 시각이면 id 순 */
+  /* 순위: 맞춘 쌍 수(pairs) 내림차순 → 완료(completedAt) 오름차순 → id 순 */
   function rankOf(teamId) {
     var done = currentTeams().filter(function (t) {
       return t.status === 'done' && typeof t.completedAt === 'number';
     }).sort(function (a, b) {
-      return (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1);
+      return ((b.pairs || 0) - (a.pairs || 0)) || (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1);
     });
     var idx = done.findIndex(function (t) { return t.id === teamId; });
     return { rank: idx >= 0 ? idx + 1 : null, total: done.length };
@@ -304,7 +304,7 @@
           emit('teams', currentTeams());
           var done = currentTeams().filter(function (t) {
             return t.status === 'done' && typeof t.completedAt === 'number';
-          }).sort(function (a, b) { return (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1); });
+          }).sort(function (a, b) { return ((b.pairs || 0) - (a.pairs || 0)) || (a.completedAt - b.completedAt) || (a.id < b.id ? -1 : 1); });
           var idx = done.findIndex(function (t) { return t.id === id; });
           return { rank: idx >= 0 ? idx + 1 : null, total: done.length, completedAt: ts };
         });

@@ -32,7 +32,7 @@
                  placeholder="예) 3팀" aria-describedby="nameHelp" required />
           <button class="btn btn--primary" type="submit" id="btnStart">게임 시작</button>
         </div>
-        <p id="nameHelp" class="field-help">완료 순서대로 순위가 매겨집니다.</p>
+        <p id="nameHelp" class="field-help">맞춘 쌍이 많을수록 높은 순위! 같은 수면 완료 버튼을 먼저 누른 팀이 앞섭니다.</p>
       </form>
 
       <div id="lockedBox" class="locked" hidden>
@@ -42,13 +42,13 @@
       </div>
 
       <ul class="rules">
-        <li>미리보기 <b id="rulePreview">5</b>초 동안 32장의 그림을 외치세요.</li>
-        <li>카드 두 장을 뒤집어 같은 인물이면 그대로 열립니다.</li>
-        <li><b>한 번이라도 다른 그림이 나오면 즉시 탈락.</b></li>
-        <li>16쌍을 모두 맞히면 <b>완료</b> 버튼이 열립니다.</li>
+        <li><b>1) 미리보기:</b> 시작 시 <b id="rulePreview">5</b>초 동안 32장(16쌍)이 공개된 뒤 덮입니다.</li>
+        <li><b>2) 서바이벌:</b> 두 장을 뒤집어 같은 인물이면 유지, <b>한 번이라도 틀리면 즉시 탈락!</b></li>
+        <li><b>3) 중간 완료:</b> 더 못 찾겠으면 틀리기 전에 <b>중간 완료</b>를 눌러 현재 점수로 순위에 등록할 수 있습니다.</li>
+        <li><b>4) 순위 기준:</b> <b>맞춘 쌍 수 많은 순</b> → 같으면 <b>완료 버튼 선착순</b>으로 1·2·3등 결정!</li>
       </ul>
 
-      <p class="intro-foot">가장 먼저 완료 버튼을 누른 팀이 1등 🥇</p>
+      <p class="intro-foot">더 맞힐지, 지금 완료할지 눈치 싸움이 핵심 🥇</p>
     </div>
   </section>
 
@@ -97,8 +97,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/config.js?v=2"></script>
-<script src="js/store.js"></script>
-<script src="js/game.js"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/store.js?v=3"></script>
+<script src="js/game.js?v=3"></script>
 </body>
 </html>
