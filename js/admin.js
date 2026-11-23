@@ -101,12 +101,15 @@
     return { done: done, playing: playing, out: out, all: done.concat(playing, out) };
   }
 
+  var showAllBoard = false;
+
   function renderBoard() {
     var s = sortedTeams();
     var ol = $('leaderboard');
+    var list = (!showAllBoard && s.all.length > 10) ? s.all.slice(0, 10) : s.all;
     var html = '';
 
-    s.all.forEach(function (t) {
+    list.forEach(function (t) {
       var rank = s.done.indexOf(t) + 1;
       var cls = 'row';
       var rankText = '–';
@@ -138,6 +141,15 @@
 
     ol.innerHTML = html;
     $('emptyBoard').hidden = s.all.length > 0;
+    var moreBtn = $('btnBoardMore');
+    if (moreBtn) {
+      if (s.all.length > 10) {
+        moreBtn.hidden = false;
+        moreBtn.textContent = showAllBoard ? '10위까지만 보기 ▲' : '더보기 (전체 ' + s.all.length + '팀 보기) ▼';
+      } else {
+        moreBtn.hidden = true;
+      }
+    }
 
     $('statTotal').textContent = String(s.all.length);
     $('statDone').textContent = String(s.done.length);
@@ -252,6 +264,12 @@
     paintLink();
 
     $('btnCopy').addEventListener('click', copyLink);
+    if ($('btnBoardMore')) {
+      $('btnBoardMore').addEventListener('click', function () {
+        showAllBoard = !showAllBoard;
+        renderBoard();
+      });
+    }
     $('linkBox').addEventListener('click', function () {
       var range = document.createRange();
       range.selectNodeContents($('gameUrl'));

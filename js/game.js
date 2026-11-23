@@ -594,11 +594,11 @@
     var pairsDone = typeof finalPairs === 'number' ? finalPairs : PAIRS;
     var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
     var rankHtml;
-    if (rank && rank <= 3) {
+    if (rank && rank <= 10) {
       rankHtml = '<div class="big-rank"><span>' + rank + '등</span><small>' + medal + '</small></div>';
     } else if (rank) {
       rankHtml = '<div class="big-rank"><span>' + rank + '등</span><small>' + (pairsDone >= PAIRS ? '완주' : '완료') + '</small></div>' +
-        '<p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-faint)">아쉽게 3위권 밖이지만 기록이 확정되었습니다!</p>';
+        '<p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-faint)">10위권 밖이지만 전체 순위에 기록이 확정되었습니다!</p>';
     } else {
       rankHtml = '';
     }
