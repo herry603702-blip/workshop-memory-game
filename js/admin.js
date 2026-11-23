@@ -215,10 +215,14 @@
     var msel = $('previewModeSelect');
     var pm = window.Store.getPreviewMode();
     if (msel && document.activeElement !== msel) msel.value = pm;
+    var tsel = $('turnLimitSelect');
+    var tl = window.Store.getTurnLimitSeconds();
+    if (tsel && document.activeElement !== tsel) tsel.value = String(tl);
     $('sessionInfo').textContent = '게임 세션 ' + String(s.gameId).slice(0, 10) +
       ' · 라운드 ' + (Number(s.roundNo) || 1) +
       ' · ' + (pm === 'batch' ? '12장씩 분할' : '32장 전체') +
-      ' ' + (s.previewSeconds || 5) + '초';
+      ' ' + (s.previewSeconds || 5) + '초' +
+      ' · 제한 ' + tl + '초';
   }
 
   /* ---------------------------- 초기화 ---------------------------- */
@@ -276,6 +280,13 @@
     $('previewModeSelect').addEventListener('change', function (e) {
       window.Store.setPreviewMode(e.target.value).then(function (pm) {
         toast(pm === 'batch' ? '미리보기: 12장씩 3번 나눠 보기로 설정했습니다.' : '미리보기: 한 번에 32장 보기로 설정했습니다.');
+        paintSession();
+      });
+    });
+
+    $('turnLimitSelect').addEventListener('change', function (e) {
+      window.Store.setTurnLimitSeconds(e.target.value).then(function (sec) {
+        toast('한 쌍 제한시간을 ' + sec + '초로 설정했습니다.');
         paintSession();
       });
     });

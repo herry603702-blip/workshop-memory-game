@@ -103,13 +103,14 @@
 
   function startTurnTimer() {
     stopTurnTimer();
-    var limit = 5000;
+    var sec = Store.getTurnLimitSeconds();
+    var limit = sec * 1000;
     state.turnDeadline = Date.now() + limit;
     var tt = $('turnTimer');
     if (tt) {
       tt.hidden = false;
       tt.classList.remove('is-urgent');
-      tt.textContent = '⏱ 5.0s';
+      tt.textContent = '⏱ ' + sec.toFixed(1) + 's';
     }
     state.turnTimerId = setInterval(function () {
       if (state.phase !== 'play') { stopTurnTimer(); return; }
@@ -121,7 +122,7 @@
       }
       if (tt) {
         tt.textContent = '⏱ ' + (remain / 1000).toFixed(1) + 's';
-        tt.classList.toggle('is-urgent', remain <= 2000);
+        tt.classList.toggle('is-urgent', remain <= Math.min(2000, limit * 0.45));
       }
     }, 80);
   }
@@ -163,6 +164,7 @@
           ? '12장씩 3번에 나눠서'
           : '32장(16쌍)이 한 번에';
       }
+      if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
     } catch (e) { /* noop */ }
 
     if (lock) {
@@ -464,7 +466,7 @@
       enableComplete();
     } else {
       state.busy = false;
-      $('hudStatus').textContent = '좋아요! 5초 안에 다음 짝을 찾으세요';
+      $('hudStatus').textContent = '좋아요! ' + Store.getTurnLimitSeconds() + '초 안에 다음 짝을 찾으세요';
       $('btnComplete').textContent = '중간 완료 (' + state.matched + '/' + PAIRS + '쌍)';
       startTurnTimer();
     }
@@ -496,7 +498,7 @@
       title: '시간 초과! 탈락!',
       win: false,
       body:
-        '한 쌍을 <b>5초</b> 안에 찾지 못했습니다.<br />' +
+        '한 쌍을 <b>' + Store.getTurnLimitSeconds() + '초</b> 안에 찾지 못했습니다.<br />' +
         '찾은 짝 <b>' + state.matched + '/' + PAIRS + '</b> · 도전 시간 <b>' + fmt(elapsed) + '</b><br />' +
         '사회자가 초기화하면 다시 도전할 수 있습니다.'
     });

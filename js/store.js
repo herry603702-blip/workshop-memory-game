@@ -67,6 +67,7 @@
       roundNo: 1,
       previewSeconds: sec,
       previewMode: 'all',
+      turnLimitSeconds: 5,
       roundIds: pickRoundIds(),
       updatedAt: Date.now()
     };
@@ -245,6 +246,12 @@
       return s.previewMode === 'batch' ? 'batch' : 'all';
     },
 
+    getTurnLimitSeconds: function () {
+      var s = this.getSession();
+      var v = Number(s.turnLimitSeconds);
+      return (v >= 1 && v <= 5) ? v : 5;
+    },
+
     listTeams: function () { return currentTeams(); },
 
     /* 팀 생성 → { id, name } */
@@ -325,6 +332,7 @@
         roundNo: (Number(cur.roundNo) || 1) + 1,
         previewSeconds: this.getPreviewSeconds(),
         previewMode: this.getPreviewMode(),
+        turnLimitSeconds: this.getTurnLimitSeconds(),
         roundIds: pickRoundIds(),
         updatedAt: Date.now(),
         resetAt: Date.now()
@@ -339,6 +347,7 @@
         roundNo: next.roundNo,
         previewSeconds: next.previewSeconds,
         previewMode: next.previewMode,
+        turnLimitSeconds: next.turnLimitSeconds,
         roundIds: next.roundIds,
         resetAt: fb.database.ServerValue.TIMESTAMP
       };
@@ -365,6 +374,17 @@
         return Promise.resolve(pm);
       }
       return db.ref('session').update({ previewMode: pm }).then(function () { return pm; });
+    },
+
+    /* 한 쌍 제한시간 변경 (관리자): 1~5초 */
+    setTurnLimitSeconds: function (sec) {
+      sec = Math.max(1, Math.min(5, Math.round(Number(sec) || 5)));
+      if (mode === 'local') {
+        session = Object.assign({}, session, { turnLimitSeconds: sec, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(sec);
+      }
+      return db.ref('session').update({ turnLimitSeconds: sec }).then(function () { return sec; });
     },
 
     rankOf: rankOf
