@@ -240,7 +240,7 @@
     board.innerHTML = '';
     state.cards = [];
     deck.forEach(function (celebId, i) {
-      var img = 'images/celeb_' + String(celebId).padStart(2, '0') + '.jpg';
+      var img = 'images/celeb_' + String(celebId).padStart(2, '0') + '.jpg?v=17';
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'card';
@@ -261,7 +261,7 @@
   function preloadImages(ids) {
     return Promise.all(ids.map(function (id) {
       return new Promise(function (res) {
-        var src = 'images/celeb_' + String(id).padStart(2, '0') + '.jpg';
+        var src = 'images/celeb_' + String(id).padStart(2, '0') + '.jpg?v=17';
         var img = new Image();
         img.onload = function () { res(true); };
         img.onerror = function () { console.warn('이미지 로드 실패:', src); res(false); };

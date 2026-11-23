@@ -177,7 +177,7 @@
     var inRound = window.Store.getRoundIds().indexOf(c.id) >= 0;
     var file = 'celeb_' + pad2(c.id) + '.jpg';
     return '<div class="person' + (inRound ? ' is-round' : '') + '" title="' + esc(c.name) + ' · images/' + file + '">' +
-      '<img src="images/' + file + '" alt="' + esc(c.name) + '" loading="lazy" />' +
+      '<img src="images/' + file + '?v=17" alt="' + esc(c.name) + '" loading="lazy" />' +
       '<span class="person__name">' + esc(c.name) + '</span>' +
       '<span class="person__file">' + file + '</span>' +
     '</div>';
