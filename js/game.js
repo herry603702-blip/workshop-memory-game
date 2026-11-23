@@ -165,10 +165,14 @@
       if ($('teamInputWrap')) $('teamInputWrap').hidden = isSolo;
       if ($('soloInputWrap')) $('soloInputWrap').hidden = !isSolo;
       if ($('rulePreview')) $('rulePreview').textContent = String(Store.getPreviewSeconds());
+      var spec = Store.getGridSpec ? Store.getGridSpec() : { key: '4x4', pairs: 8, cards: 16 };
+      PAIRS = spec.pairs; CARDS = spec.cards;
+      if ($('hudPairsTotal')) $('hudPairsTotal').textContent = '/' + PAIRS;
+      if ($('introSub')) $('introSub').textContent = spec.key.replace('x', '×') + '(' + CARDS + '장) 카드에서 ' + PAIRS + '쌍의 캐릭터를 찾아라';
       if ($('rulePreviewMode')) {
         $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
-          ? '8장씩 2번에 나눠서'
-          : '16장(8쌍)이 한 번에';
+          ? (CARDS <= 16 ? '2번에 나눠서' : '3번에 나눠서')
+          : CARDS + '장(' + PAIRS + '쌍)이 한 번에';
       }
       if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
     } catch (e) { /* noop */ }
@@ -203,8 +207,14 @@
     var h = wrap.clientHeight - padY;
     if (!w || !h) return;
 
-    var cols = 4; // 4×4 (16장) 고정
-    var rows = Math.ceil(CARDS / cols);
+    var spec = Store.getGridSpec ? Store.getGridSpec() : { cols: 4, rows: 4, pairs: 8, cards: 16 };
+    PAIRS = spec.pairs; CARDS = spec.cards;
+    var cols = spec.cols;
+    var rows = spec.rows;
+    if (window.innerWidth <= 820 && cols >= 6 && cols > rows) {
+      cols = spec.rows;
+      rows = spec.cols;
+    }
     var gap = Math.max(4, Math.min(12, Math.round(Math.min(w / (cols * 16), h / (rows * 16)))));
     var cellW = (w - gap * (cols - 1)) / cols;
     var cellH = (h - gap * (rows - 1)) / rows;
@@ -240,7 +250,16 @@
     var board = $('board');
     board.innerHTML = '';
     state.cards = [];
+    var spec = Store.getGridSpec ? Store.getGridSpec() : { emptyCenter: false };
+    var mid = Math.floor(deck.length / 2);
     deck.forEach(function (celebId, i) {
+      if (spec.emptyCenter && i === mid) {
+        var blank = document.createElement('div');
+        blank.className = 'card--blank';
+        blank.setAttribute('aria-hidden', 'true');
+        blank.innerHTML = '<span>★</span>';
+        board.appendChild(blank);
+      }
       var img = 'images/celeb_' + String(celebId).padStart(2, '0') + '.jpg?v=17';
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -275,6 +294,9 @@
   function startGame(teamName, meta) {
     if (state.phase !== 'intro') return;
 
+    var spec = Store.getGridSpec ? Store.getGridSpec() : { key: '4x4', pairs: 8, cards: 16 };
+    PAIRS = spec.pairs; CARDS = spec.cards;
+    if ($('hudPairsTotal')) $('hudPairsTotal').textContent = '/' + PAIRS;
     var ids = Store.getRoundIds();
     var startBtn = $('btnStartTeam') || $('btnStart');
     var soloBtn = $('btnStartSolo');
@@ -335,8 +357,8 @@
     var barEl = $('previewBar');
 
     if (pmode === 'batch') {
-      var chunkSize = 8; // 8장씩 2번 나눠 공개 (촬영 방지)
-      var chunkCount = Math.ceil(CARDS / chunkSize);
+      var chunkCount = CARDS <= 16 ? 2 : 3;
+      var chunkSize = Math.ceil(CARDS / chunkCount);
       var totalMs = Math.max(sec, 4) * 1000;
       var slotMs = Math.floor(totalMs / chunkCount);
 
@@ -737,10 +759,14 @@
     var sec = Math.max(3, Math.min(20, Number(session.previewSeconds) || 5));
     var isSolo = Store.getPlayMode() === 'solo';
     if ($('rulePreview')) $('rulePreview').textContent = String(sec);
+    var spec = Store.getGridSpec ? Store.getGridSpec() : { key: '4x4', pairs: 8, cards: 16 };
+    PAIRS = spec.pairs; CARDS = spec.cards;
+    if ($('hudPairsTotal')) $('hudPairsTotal').textContent = '/' + PAIRS;
+    if ($('introSub')) $('introSub').textContent = spec.key.replace('x', '×') + '(' + CARDS + '장) 카드에서 ' + PAIRS + '쌍의 캐릭터를 찾아라';
     if ($('rulePreviewMode')) {
       $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
-        ? '8장씩 2번에 나눠서'
-        : '16장(8쌍)이 한 번에';
+        ? (CARDS <= 16 ? '2번에 나눠서' : '3번에 나눠서')
+        : CARDS + '장(' + PAIRS + '쌍)이 한 번에';
     }
     if ($('ruleTurnLimit')) $('ruleTurnLimit').textContent = String(Store.getTurnLimitSeconds());
     if ($('introRound')) {

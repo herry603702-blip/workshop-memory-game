@@ -402,6 +402,18 @@ body[data-screen="game"]  #screenGame  { display: flex; }
   /* 실제 크기는 game.js 가 화면에 맞춰 계산합니다 */
 }
 
+.card--blank {
+  display: grid;
+  place-items: center;
+  border-radius: var(--card-r);
+  border: 1px dashed rgba(255, 207, 92, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 207, 92, 0.45);
+  font-size: clamp(18px, 4vw, 28px);
+  pointer-events: none;
+  cursor: default;
+}
+
 /* 카드 */
 .card {
   position: relative;

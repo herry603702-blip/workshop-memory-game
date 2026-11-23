@@ -35,14 +35,28 @@
     return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   }
 
-  /* ------------------- 라운드(인물 16명) 뽑기 ------------------- */
+  var GRID_PRESETS = {
+    '4x3': { key: '4x3', cols: 4, rows: 3, pairs: 6,  emptyCenter: false },
+    '4x4': { key: '4x4', cols: 4, rows: 4, pairs: 8,  emptyCenter: false },
+    '5x4': { key: '5x4', cols: 5, rows: 4, pairs: 10, emptyCenter: false },
+    '5x5': { key: '5x5', cols: 5, rows: 5, pairs: 12, emptyCenter: true  },
+    '6x4': { key: '6x4', cols: 6, rows: 4, pairs: 12, emptyCenter: false },
+    '8x4': { key: '8x4', cols: 8, rows: 4, pairs: 16, emptyCenter: false },
+    '6x6': { key: '6x6', cols: 6, rows: 6, pairs: 18, emptyCenter: false }
+  };
+
+  function getSpecForKey(key) {
+    return GRID_PRESETS[key] || GRID_PRESETS['4x4'];
+  }
+
+  /* ------------------- 라운드(인물 N명) 뽑기 ------------------- */
   function poolIds() {
     var list = (window.GAME_CONFIG && window.GAME_CONFIG.celebrities) || [];
     return list.map(function (c) { return c.id; });
   }
 
-  function pickRoundIds() {
-    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
+  function pickRoundIds(count) {
+    var n = Number(count) || (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
     var ids = poolIds().slice();
     for (var i = ids.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -51,9 +65,9 @@
     return ids.slice(0, Math.min(n, ids.length)).sort(function (a, b) { return a - b; });
   }
 
-  function validRoundIds(ids) {
+  function validRoundIds(ids, count) {
     var pool = poolIds();
-    var n = (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
+    var n = Number(count) || (window.GAME_CONFIG && window.GAME_CONFIG.cardsPerRound) || 8;
     if (!Array.isArray(ids)) return null;
     var clean = ids.filter(function (id) { return pool.indexOf(id) >= 0; });
     var uniq = clean.filter(function (id, i) { return clean.indexOf(id) === i; });
@@ -62,16 +76,18 @@
 
   function defaultSession() {
     var sec = (window.GAME_CONFIG && window.GAME_CONFIG.defaultPreviewSeconds) || 5;
+    var spec = getSpecForKey('4x4');
     return {
       gameId: newGameId(),
       roundNo: 1,
+      gridSize: spec.key,
       previewSeconds: sec,
       previewMode: 'all',
       turnLimitSeconds: 5,
       playMode: 'team',
       hintCount: 1,
       hintSeconds: 2,
-      roundIds: pickRoundIds(),
+      roundIds: pickRoundIds(spec.pairs),
       updatedAt: Date.now()
     };
   }
@@ -183,7 +199,9 @@
           if (!cur) return defaultSession();
           var next = Object.assign({}, cur);
           var changed = false;
-          if (!validRoundIds(next.roundIds)) { next.roundIds = pickRoundIds(); changed = true; }
+          var spec = getSpecForKey(next.gridSize);
+          if (next.gridSize !== spec.key) { next.gridSize = spec.key; changed = true; }
+          if (!validRoundIds(next.roundIds, spec.pairs)) { next.roundIds = pickRoundIds(spec.pairs); changed = true; }
           if (!next.roundNo) { next.roundNo = 1; changed = true; }
           return changed ? next : undefined;   // undefined = 변경 없이 종료
         }).then(function () {
@@ -234,12 +252,19 @@
 
     getSession: function () { return session || defaultSession(); },
 
-    /* 이번 라운드의 인물 id 16개 (모든 팀이 같은 세트를 씁니다) */
+    /* 이번 라운드의 인물 id 목록 (모든 팀이 같은 세트를 씁니다) */
     getRoundIds: function () {
       var s = this.getSession();
-      var ids = validRoundIds(s.roundIds);
-      if (!ids) { ids = pickRoundIds(); }
+      var spec = getSpecForKey(s.gridSize);
+      var ids = validRoundIds(s.roundIds, spec.pairs);
+      if (!ids) { ids = pickRoundIds(spec.pairs); }
       return ids;
+    },
+
+    getGridSpec: function () {
+      var s = this.getSession();
+      var spec = getSpecForKey(s.gridSize);
+      return Object.assign({ cards: spec.pairs * 2 }, spec);
     },
 
     getPreviewSeconds: function () {
@@ -391,6 +416,18 @@
         resetAt: fb.database.ServerValue.TIMESTAMP
       };
       return db.ref('session').update(p).then(function () { return next; });
+    },
+
+    /* 보드 크기 변경 (관리자) */
+    setGridSize: function (key) {
+      var spec = getSpecForKey(key);
+      var newIds = pickRoundIds(spec.pairs);
+      if (mode === 'local') {
+        session = Object.assign({}, session, { gridSize: spec.key, roundIds: newIds, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(spec.key);
+      }
+      return db.ref('session').update({ gridSize: spec.key, roundIds: newIds }).then(function () { return spec.key; });
     },
 
     /* 미리보기 시간 변경 (관리자) */

@@ -5,7 +5,7 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var gameUrl = new URL('index.html?v=20', location.href).href.split('#')[0];
+  var gameUrl = new URL('index.html?v=21', location.href).href.split('#')[0];
   var qrRendered = false;
 
   function esc(str) {
@@ -124,7 +124,8 @@
         if (rank === 1) cls += ' row--podium';
         else if (rank === 2) cls += ' row--podium row--second';
         else if (rank === 3) cls += ' row--podium row--third';
-        meta = (t.pairs || 0) + '/8쌍 · 오답 ' + (t.mistakes || 0) + '회' + (t.elapsedMs ? ' · ' + fmt(t.elapsedMs) : '');
+        var pairsTotal = (window.Store.getGridSpec && window.Store.getGridSpec().pairs) || 8;
+        meta = (t.pairs || 0) + '/' + pairsTotal + '쌍 · 오답 ' + (t.mistakes || 0) + '회' + (t.elapsedMs ? ' · ' + fmt(t.elapsedMs) : '');
         tag = '<span class="tag tag--done">완료</span>';
       } else if (t.status === 'out') {
         meta = '찾은 짝 ' + (t.pairs || 0) + '/16';
@@ -229,6 +230,9 @@
 
   function paintSession() {
     var s = window.Store.getSession();
+    var spec = window.Store.getGridSpec ? window.Store.getGridSpec() : { key: '4x4', pairs: 8, cards: 16 };
+    var gsel = $('gridSizeSelect');
+    if (gsel && document.activeElement !== gsel) gsel.value = spec.key;
     var sel = $('previewSelect');
     if (document.activeElement !== sel) sel.value = String(s.previewSeconds || 5);
     var msel = $('previewModeSelect');
@@ -248,8 +252,9 @@
     if (hssel && document.activeElement !== hssel) hssel.value = String(hs);
     $('sessionInfo').textContent = '게임 세션 ' + String(s.gameId).slice(0, 10) +
       ' · 라운드 ' + (Number(s.roundNo) || 1) +
+      ' · ' + spec.key.replace('x', '×') + '(' + spec.pairs + '쌍)' +
       ' · ' + (playM === 'solo' ? '개인전' : '팀전') +
-      ' · ' + (pm === 'batch' ? '8장씩 분할' : '16장 전체') +
+      ' · ' + (pm === 'batch' ? '분할 보기' : '전체 보기') +
       ' ' + (s.previewSeconds || 5) + '초' +
       ' · 제한 ' + tl + '초' +
       ' · ' + (hc > 0 ? '힌트 ' + hc + '회(' + hs + '초)' : '힌트 없음');
@@ -305,6 +310,17 @@
     $('resetModal').addEventListener('click', function (e) {
       if (e.target === $('resetModal')) closeReset();
     });
+
+    if ($('gridSizeSelect')) {
+      $('gridSizeSelect').addEventListener('change', function (e) {
+        window.Store.setGridSize(e.target.value).then(function (k) {
+          toast('보드 크기를 ' + k.replace('x', '×') + '로 변경했습니다.');
+          paintSession();
+          renderBoard();
+          renderPool();
+        });
+      });
+    }
 
     $('previewSelect').addEventListener('change', function (e) {
       window.Store.setPreviewSeconds(e.target.value).then(function (sec) {

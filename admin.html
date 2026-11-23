@@ -18,7 +18,7 @@
   </div>
   <div class="topbar__right">
     <span class="badge badge--mode" id="modeBadge">확인 중…</span>
-    <a class="link-plain" href="index.html?v=20" target="_blank" rel="noopener">참가자 화면 ↗</a>
+    <a class="link-plain" href="index.html?v=21" target="_blank" rel="noopener">참가자 화면 ↗</a>
   </div>
 </header>
 
@@ -39,7 +39,7 @@
       <button class="btn btn--primary btn--xl" id="btnCopy" type="button">
         <span class="btn__icon" aria-hidden="true">⧉</span> 링크 복사
       </button>
-      <a class="btn btn--ghost btn--xl" id="btnOpen" href="index.html?v=20" target="_blank" rel="noopener">새 탭에서 열기</a>
+      <a class="btn btn--ghost btn--xl" id="btnOpen" href="index.html?v=21" target="_blank" rel="noopener">새 탭에서 열기</a>
     </div>
 
     <p class="link-hint">복사한 링크를 단체 채팅방·메일로 공유하면 참가자들이 바로 접속할 수 있습니다. 같은 링크로 몇 명이든 동시에 참여할 수 있어요.</p>
@@ -95,8 +95,20 @@
       <label class="control-field" for="previewModeSelect">
         <span>미리보기 방식</span>
         <select id="previewModeSelect">
-          <option value="all" selected>한 번에 16장 보기</option>
-          <option value="batch">8장씩 2번 나눠 보기 (촬영 방지)</option>
+          <option value="all" selected>한 번에 전체 보기</option>
+          <option value="batch">나눠서 보기 (촬영 방지)</option>
+        </select>
+      </label>
+      <label class="control-field" for="gridSizeSelect">
+        <span>보드 크기</span>
+        <select id="gridSizeSelect">
+          <option value="4x3">4×3 (12장 · 6쌍)</option>
+          <option value="4x4" selected>4×4 (16장 · 8쌍)</option>
+          <option value="5x4">5×4 (20장 · 10쌍)</option>
+          <option value="5x5">5×5 (24장 · 12쌍 · 중앙 ★)</option>
+          <option value="6x4">6×4 (24장 · 12쌍)</option>
+          <option value="8x4">8×4 (32장 · 16쌍)</option>
+          <option value="6x6">6×6 (36장 · 18쌍)</option>
         </select>
       </label>
       <label class="control-field" for="previewSelect">
@@ -187,9 +199,9 @@
   </div>
 </div>
 
-<script src="js/config.js?v=20"></script>
-<script src="js/store.js?v=20"></script>
+<script src="js/config.js?v=21"></script>
+<script src="js/store.js?v=21"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js" onerror="window.__qrCdnFailed=true"></script>
-<script src="js/admin.js?v=20"></script>
+<script src="js/admin.js?v=21"></script>
 </body>
 </html>
