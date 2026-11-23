@@ -5,7 +5,7 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var gameUrl = new URL('index.html', location.href).href.split('#')[0];
+  var gameUrl = new URL('index.html?v=18', location.href).href.split('#')[0];
   var qrRendered = false;
 
   function esc(str) {
