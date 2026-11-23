@@ -286,6 +286,7 @@
       state.roundIds = ids;
       state.team = team;
       state.matched = 0;
+      state.hintsLeft = Store.getHintCount();
       state.first = state.second = null;
       state.phase = 'preview';
       state.busy = true;
@@ -303,6 +304,7 @@
       $('hudTimer').textContent = '00:00';
       $('btnComplete').disabled = true;
       $('btnComplete').classList.remove('is-ready');
+      updateHintBtn(true);
       $('gamebarRank').hidden = true;
       $('overlay').hidden = true;
       setScreen('game');
@@ -443,17 +445,67 @@
     later(function () { beginPlay(); }, (CARDS - 1) * wave + 470);
   }
 
+  function updateHintBtn(forceDisable) {
+    var btn = $('btnHint');
+    if (!btn) return;
+    var totalHints = Store.getHintCount();
+    if (totalHints <= 0) {
+      btn.hidden = true;
+      btn.disabled = true;
+      return;
+    }
+    btn.hidden = false;
+    var left = typeof state.hintsLeft === 'number' ? state.hintsLeft : totalHints;
+    btn.textContent = '💡 힌트 (' + left + ')';
+    btn.disabled = !!forceDisable || left <= 0;
+  }
+
+  function useHint() {
+    if (state.phase !== 'play' || state.busy) return;
+    if (!state.hintsLeft || state.hintsLeft <= 0) return;
+
+    state.hintsLeft--;
+    state.busy = true;
+    stopTurnTimer();
+    updateHintBtn(true);
+    Sound.flip();
+
+    var hSec = Store.getHintSeconds();
+    $('hudStatus').textContent = '💡 힌트! ' + hSec + '초 동안 전체 카드를 확인하세요';
+
+    state.cards.forEach(function (card) {
+      if (!card.classList.contains('is-matched')) {
+        card.classList.add('is-flipped');
+      }
+    });
+
+    later(function () {
+      state.cards.forEach(function (card) {
+        if (!card.classList.contains('is-matched') && card !== state.first) {
+          card.classList.remove('is-flipped');
+        }
+      });
+      if (state.phase === 'play') {
+        state.busy = false;
+        updateHintBtn(false);
+        $('hudStatus').textContent = '다시 ' + Store.getTurnLimitSeconds() + '초 안에 짝을 찾으세요';
+        startTurnTimer();
+      }
+    }, hSec * 1000);
+  }
+
   function beginPlay() {
     state.phase = 'play';
     state.busy = false;
     state.startAt = Date.now();
-    $('gameHint').textContent = '한 번 틀리면 탈락! 더 못 찾겠으면 탈락 전에 "중간 완료"로 현재 점수를 확정하세요.';
+    $('gameHint').textContent = '오답·시간 초과 시 현재까지 맞춘 쌍 수로 순위에 등록됩니다.';
     $('hudStatus').textContent = '카드를 두 장 뒤집어 같은 인물을 찾으세요';
 
     var btn = $('btnComplete');
     btn.disabled = false;
     btn.classList.remove('is-ready');
     btn.textContent = '중간 완료 (0/' + PAIRS + '쌍)';
+    updateHintBtn(false);
 
     state.timerId = setInterval(function () {
       $('hudTimer').textContent = fmt(Date.now() - state.startAt);
@@ -787,7 +839,8 @@
       }
     });
 
-    // 완료
+    // 완료 & 힌트
+    if ($('btnHint')) $('btnHint').addEventListener('click', useHint);
     $('btnComplete').addEventListener('click', submitComplete);
     $('ovClose').addEventListener('click', closeOverlay);
     document.addEventListener('keydown', function (e) {

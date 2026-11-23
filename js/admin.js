@@ -5,7 +5,7 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var gameUrl = new URL('index.html?v=18', location.href).href.split('#')[0];
+  var gameUrl = new URL('index.html?v=19', location.href).href.split('#')[0];
   var qrRendered = false;
 
   function esc(str) {
@@ -237,12 +237,19 @@
     var psel = $('playModeSelect');
     var playM = window.Store.getPlayMode();
     if (psel && document.activeElement !== psel) psel.value = playM;
+    var hcsel = $('hintCountSelect');
+    var hc = window.Store.getHintCount();
+    if (hcsel && document.activeElement !== hcsel) hcsel.value = String(hc);
+    var hssel = $('hintSecSelect');
+    var hs = window.Store.getHintSeconds();
+    if (hssel && document.activeElement !== hssel) hssel.value = String(hs);
     $('sessionInfo').textContent = '게임 세션 ' + String(s.gameId).slice(0, 10) +
       ' · 라운드 ' + (Number(s.roundNo) || 1) +
       ' · ' + (playM === 'solo' ? '개인전' : '팀전') +
       ' · ' + (pm === 'batch' ? '12장씩 분할' : '32장 전체') +
       ' ' + (s.previewSeconds || 5) + '초' +
-      ' · 제한 ' + tl + '초';
+      ' · 제한 ' + tl + '초' +
+      ' · ' + (hc > 0 ? '힌트 ' + hc + '회(' + hs + '초)' : '힌트 없음');
   }
 
   /* ---------------------------- 초기화 ---------------------------- */
@@ -320,6 +327,20 @@
     $('playModeSelect').addEventListener('change', function (e) {
       window.Store.setPlayMode(e.target.value).then(function (pm) {
         toast(pm === 'solo' ? '참가 방식: 개인전(팀명+이름 입력)으로 설정했습니다.' : '참가 방식: 팀전으로 설정했습니다.');
+        paintSession();
+      });
+    });
+
+    $('hintCountSelect').addEventListener('change', function (e) {
+      window.Store.setHintCount(e.target.value).then(function (cnt) {
+        toast(cnt > 0 ? '힌트 횟수를 ' + cnt + '회로 설정했습니다.' : '힌트를 사용하지 않도록 설정했습니다.');
+        paintSession();
+      });
+    });
+
+    $('hintSecSelect').addEventListener('change', function (e) {
+      window.Store.setHintSeconds(e.target.value).then(function (sec) {
+        toast('힌트 시간을 ' + sec + '초로 설정했습니다.');
         paintSession();
       });
     });

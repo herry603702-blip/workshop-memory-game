@@ -69,6 +69,8 @@
       previewMode: 'all',
       turnLimitSeconds: 5,
       playMode: 'team',
+      hintCount: 1,
+      hintSeconds: 2,
       roundIds: pickRoundIds(),
       updatedAt: Date.now()
     };
@@ -258,6 +260,18 @@
       return s.playMode === 'solo' ? 'solo' : 'team';
     },
 
+    getHintCount: function () {
+      var s = this.getSession();
+      var v = Number(s.hintCount);
+      return (!isNaN(v) && v >= 0 && v <= 5) ? Math.round(v) : 1;
+    },
+
+    getHintSeconds: function () {
+      var s = this.getSession();
+      var v = Number(s.hintSeconds);
+      return (!isNaN(v) && v >= 1 && v <= 5) ? Math.round(v) : 2;
+    },
+
     listTeams: function () { return currentTeams(); },
 
     /* 팀/참가자 생성 → { id, name } */
@@ -344,6 +358,8 @@
         previewMode: this.getPreviewMode(),
         turnLimitSeconds: this.getTurnLimitSeconds(),
         playMode: this.getPlayMode(),
+        hintCount: this.getHintCount(),
+        hintSeconds: this.getHintSeconds(),
         roundIds: pickRoundIds(),
         updatedAt: Date.now(),
         resetAt: Date.now()
@@ -360,6 +376,8 @@
         previewMode: next.previewMode,
         turnLimitSeconds: next.turnLimitSeconds,
         playMode: next.playMode,
+        hintCount: next.hintCount,
+        hintSeconds: next.hintSeconds,
         roundIds: next.roundIds,
         resetAt: fb.database.ServerValue.TIMESTAMP
       };
@@ -408,6 +426,29 @@
         return Promise.resolve(pm);
       }
       return db.ref('session').update({ playMode: pm }).then(function () { return pm; });
+    },
+
+    /* 힌트 횟수 변경 (관리자): 0~5회 */
+    setHintCount: function (cnt) {
+      cnt = Math.max(0, Math.min(5, Math.round(Number(cnt))));
+      if (isNaN(cnt)) cnt = 0;
+      if (mode === 'local') {
+        session = Object.assign({}, session, { hintCount: cnt, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(cnt);
+      }
+      return db.ref('session').update({ hintCount: cnt }).then(function () { return cnt; });
+    },
+
+    /* 힌트 시간 변경 (관리자): 1~5초 */
+    setHintSeconds: function (sec) {
+      sec = Math.max(1, Math.min(5, Math.round(Number(sec) || 2)));
+      if (mode === 'local') {
+        session = Object.assign({}, session, { hintSeconds: sec, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(sec);
+      }
+      return db.ref('session').update({ hintSeconds: sec }).then(function () { return sec; });
     },
 
     rankOf: rankOf
