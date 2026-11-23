@@ -516,7 +516,7 @@
       }
       state.phase = 'over';
       Sound.match();
-      showDone(res.rank, res.total, elapsed, finalPairs, true);
+      showDone(res.rank, res.total, elapsed, finalPairs, 'timeout');
     }).catch(function (err) {
       console.error(err);
       state.phase = 'over';
@@ -525,24 +525,26 @@
   }
 
   function endByFail(a, b) {
-    state.phase = 'over';
+    var finalPairs = state.matched;
+    state.phase = 'saving';
     state.busy = true;
     clearTimers();
 
     var elapsed = state.startAt ? Date.now() - state.startAt : 0;
-    var lock = readLock();
-    if (lock) { lock.status = 'out'; lock.pairs = state.matched; writeLock(lock); }
-    if (state.team) Store.failTeam(state.team.id, state.matched, 'mismatch');
-
-    showOverlay({
-      emoji: '😵',
-      title: '탈락!',
-      win: false,
-      body:
-        '다른 인물이 나왔습니다.<br />' +
-        '찾은 짝 <b>' + state.matched + '/' + PAIRS + '</b> · 도전 시간 <b>' + fmt(elapsed) + '</b><br />' +
-        '한 번의 실수도 허용되지 않는 서바이벌 룰이에요.<br />' +
-        '사회자가 초기화하면 다시 도전할 수 있습니다.'
+    Store.completeTeam(state.team.id, finalPairs, elapsed).then(function (res) {
+      var lock = readLock();
+      if (lock) {
+        lock.status = 'done';
+        lock.pairs = finalPairs;
+        lock.rank = res.rank || null;
+        writeLock(lock);
+      }
+      state.phase = 'over';
+      showDone(res.rank, res.total, elapsed, finalPairs, 'wrong');
+    }).catch(function (err) {
+      console.error(err);
+      state.phase = 'over';
+      toast('순위 기록에 실패했습니다. 새로고침하지 말고 사회자에게 알려주세요.');
     });
   }
 
@@ -599,7 +601,7 @@
     });
   }
 
-  function showDone(rank, total, elapsed, finalPairs, timedOut) {
+  function showDone(rank, total, elapsed, finalPairs, endReason) {
     var pairsDone = typeof finalPairs === 'number' ? finalPairs : PAIRS;
     var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏆';
     var rankHtml;
@@ -612,14 +614,18 @@
       rankHtml = '';
     }
 
-    var titleText = timedOut
+    var titleText = endReason === 'timeout'
       ? '시간 초과 · 기록 완료!'
-      : (pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!');
+      : endReason === 'wrong'
+        ? '오답 종료 · 기록 완료!'
+        : (pairsDone >= PAIRS ? '16쌍 모두 완료!' : '기록 완료!');
+
+    var emojiIcon = endReason === 'timeout' ? '⏰' : (endReason === 'wrong' ? '😵' : '🏆');
 
     showOverlay({
-      emoji: timedOut ? '⏰' : '🏆',
+      emoji: emojiIcon,
       title: titleText,
-      win: true,
+      win: endReason !== 'wrong',
       html:
         rankHtml +
         '<dl class="result-grid">' +
