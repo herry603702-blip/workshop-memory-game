@@ -77,12 +77,12 @@ window.GAME_CONFIG = {
      준비 순서는 README.md 의 'Firebase 연결하기' 를 보세요.
      ======================================================= */
   firebase: {
-    apiKey: '',
-    authDomain: '',
-    databaseURL: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: ''
+    apiKey: 'AIzaSyATfUDUkQaVXql0zxr5mt2HmhYC15U3x-k',
+    authDomain: 'memory-622cf.firebaseapp.com',
+    databaseURL: 'https://memory-622cf-default-rtdb.firebaseio.com',
+    projectId: 'memory-622cf',
+    storageBucket: 'memory-622cf.firebasestorage.app',
+    messagingSenderId: '1070850616494',
+    appId: '1:1070850616494:web:455471465529f3fb6c113f'
   }
 };
