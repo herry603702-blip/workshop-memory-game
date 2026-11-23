@@ -156,8 +156,13 @@
     // 이번 라운드 안내
     try {
       var s = Store.getSession();
+      var isSolo = Store.getPlayMode() === 'solo';
       $('introRound').textContent = '라운드 ' + (Number(s.roundNo) || 1) +
+        ' · ' + (isSolo ? '개인전' : '팀전') +
         ' · 후보 ' + CELEBS.length + '명 중 ' + PAIRS + '명 랜덤';
+      if ($('entryLabel')) $('entryLabel').textContent = isSolo ? '팀명 / 이름' : '팀 이름';
+      if ($('teamInputWrap')) $('teamInputWrap').hidden = isSolo;
+      if ($('soloInputWrap')) $('soloInputWrap').hidden = !isSolo;
       if ($('rulePreview')) $('rulePreview').textContent = String(Store.getPreviewSeconds());
       if ($('rulePreviewMode')) {
         $('rulePreviewMode').textContent = Store.getPreviewMode() === 'batch'
@@ -181,6 +186,8 @@
     } else {
       form.hidden = false;
       box.hidden = true;
+      if ($('btnStartTeam')) { $('btnStartTeam').disabled = false; $('btnStartTeam').textContent = '게임 시작'; }
+      if ($('btnStartSolo')) { $('btnStartSolo').disabled = false; $('btnStartSolo').textContent = '게임 시작'; }
     }
   }
 
@@ -264,16 +271,17 @@
   }
 
   /* -------------------------- 게임 흐름 -------------------------- */
-  function startGame(teamName) {
+  function startGame(teamName, meta) {
     if (state.phase !== 'intro') return;
 
     var ids = Store.getRoundIds();
-    var startBtn = $('btnStart');
-    startBtn.disabled = true;
-    startBtn.textContent = '준비 중…';
+    var startBtn = $('btnStartTeam') || $('btnStart');
+    var soloBtn = $('btnStartSolo');
+    if (startBtn) { startBtn.disabled = true; startBtn.textContent = '준비 중…'; }
+    if (soloBtn) { soloBtn.disabled = true; soloBtn.textContent = '준비 중…'; }
 
     preloadImages(ids).then(function () {
-      return Store.createTeam(teamName);
+      return Store.createTeam(teamName, meta);
     }).then(function (team) {
       state.roundIds = ids;
       state.team = team;
@@ -306,8 +314,8 @@
       });
     }).catch(function (err) {
       console.error(err);
-      startBtn.disabled = false;
-      startBtn.textContent = '게임 시작';
+      if (startBtn) { startBtn.disabled = false; startBtn.textContent = '게임 시작'; }
+      if (soloBtn) { soloBtn.disabled = false; soloBtn.textContent = '게임 시작'; }
       toast('팀 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     });
   }
@@ -695,6 +703,30 @@
     // 시작
     $('startForm').addEventListener('submit', function (e) {
       e.preventDefault();
+      if (Store.getPlayMode() === 'solo') {
+        var gIn = $('soloGroup');
+        var pIn = $('soloName');
+        var grp = gIn.value.trim();
+        var plr = pIn.value.trim();
+        if (grp.length < 1) {
+          gIn.focus();
+          gIn.classList.add('shake');
+          setTimeout(function () { gIn.classList.remove('shake'); }, 400);
+          toast('팀명을 입력해 주세요.');
+          return;
+        }
+        if (plr.length < 1) {
+          pIn.focus();
+          pIn.classList.add('shake');
+          setTimeout(function () { pIn.classList.remove('shake'); }, 400);
+          toast('이름을 입력해 주세요.');
+          return;
+        }
+        Sound.flip();
+        startGame('[' + grp + '] ' + plr, { groupName: grp, playerName: plr });
+        return;
+      }
+
       var input = $('teamName');
       var name = input.value.trim();
       if (name.length < 1) {

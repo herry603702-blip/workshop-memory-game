@@ -131,9 +131,13 @@
         tag = '<span class="tag tag--playing">진행 중</span>';
       }
 
+      var teamHtml = (t.groupName && t.playerName)
+        ? '<span class="row__team"><small style="opacity:.72;margin-right:6px;font-weight:600;">[' + esc(t.groupName) + ']</small>' + esc(t.playerName) + '</span>'
+        : '<span class="row__team">' + esc(t.name) + '</span>';
+
       html += '<li class="' + cls + '"' + (t.completedAt ? ' title="완료 ' + esc(clock(t.completedAt)) + '"' : '') + '>' +
         '<span class="row__rank">' + rankText + '</span>' +
-        '<span class="row__team">' + esc(t.name) + '</span>' +
+        teamHtml +
         '<span class="row__meta">' + esc(meta) + '</span>' +
         tag +
       '</li>';
@@ -230,8 +234,12 @@
     var tsel = $('turnLimitSelect');
     var tl = window.Store.getTurnLimitSeconds();
     if (tsel && document.activeElement !== tsel) tsel.value = String(tl);
+    var psel = $('playModeSelect');
+    var playM = window.Store.getPlayMode();
+    if (psel && document.activeElement !== psel) psel.value = playM;
     $('sessionInfo').textContent = '게임 세션 ' + String(s.gameId).slice(0, 10) +
       ' · 라운드 ' + (Number(s.roundNo) || 1) +
+      ' · ' + (playM === 'solo' ? '개인전' : '팀전') +
       ' · ' + (pm === 'batch' ? '12장씩 분할' : '32장 전체') +
       ' ' + (s.previewSeconds || 5) + '초' +
       ' · 제한 ' + tl + '초';
@@ -305,6 +313,13 @@
     $('turnLimitSelect').addEventListener('change', function (e) {
       window.Store.setTurnLimitSeconds(e.target.value).then(function (sec) {
         toast('한 쌍 제한시간을 ' + sec + '초로 설정했습니다.');
+        paintSession();
+      });
+    });
+
+    $('playModeSelect').addEventListener('change', function (e) {
+      window.Store.setPlayMode(e.target.value).then(function (pm) {
+        toast(pm === 'solo' ? '참가 방식: 개인전(팀명+이름 입력)으로 설정했습니다.' : '참가 방식: 팀전으로 설정했습니다.');
         paintSession();
       });
     });

@@ -85,6 +85,13 @@
   <section class="panel panel--control">
     <div class="panel__head"><h2>게임 운영</h2></div>
     <div class="control-row">
+      <label class="control-field" for="playModeSelect">
+        <span>참가 방식</span>
+        <select id="playModeSelect">
+          <option value="team" selected>팀전 (팀 이름만 입력)</option>
+          <option value="solo">개인전 (팀명 + 이름 입력)</option>
+        </select>
+      </label>
       <label class="control-field" for="previewModeSelect">
         <span>미리보기 방식</span>
         <select id="previewModeSelect">
@@ -159,9 +166,9 @@
   </div>
 </div>
 
-<script src="js/config.js?v=10"></script>
-<script src="js/store.js?v=10"></script>
+<script src="js/config.js?v=13"></script>
+<script src="js/store.js?v=13"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js" onerror="window.__qrCdnFailed=true"></script>
-<script src="js/admin.js?v=10"></script>
+<script src="js/admin.js?v=13"></script>
 </body>
 </html>

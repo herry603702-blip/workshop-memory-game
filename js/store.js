@@ -68,6 +68,7 @@
       previewSeconds: sec,
       previewMode: 'all',
       turnLimitSeconds: 5,
+      playMode: 'team',
       roundIds: pickRoundIds(),
       updatedAt: Date.now()
     };
@@ -252,32 +253,41 @@
       return (v >= 1 && v <= 5) ? v : 5;
     },
 
+    getPlayMode: function () {
+      var s = this.getSession();
+      return s.playMode === 'solo' ? 'solo' : 'team';
+    },
+
     listTeams: function () { return currentTeams(); },
 
-    /* 팀 생성 → { id, name } */
-    createTeam: function (name) {
-      name = String(name || '').trim().slice(0, 12) || '이름없는 팀';
+    /* 팀/참가자 생성 → { id, name } */
+    createTeam: function (name, meta) {
+      name = String(name || '').trim().slice(0, 24) || '이름없는 팀';
       var self = this;
 
       // 같은 이름이 있으면 뒤에 번호를 붙여 구분
       var same = currentTeams().filter(function (t) { return t.name === name || t.name.indexOf(name + ' (') === 0; });
       if (same.length) name = name + ' (' + (same.length + 1) + ')';
 
+      var extra = {};
+      if (meta && meta.groupName) extra.groupName = String(meta.groupName).trim().slice(0, 12);
+      if (meta && meta.playerName) extra.playerName = String(meta.playerName).trim().slice(0, 12);
+
       if (mode === 'local') {
         var key = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-        teams[key] = {
+        teams[key] = Object.assign({
           id: key, name: name, gameId: session.gameId, status: 'playing',
           startedAt: Date.now(), pairs: 0
-        };
+        }, extra);
         writeLocalTeams(); broadcast('teams'); emit('teams', currentTeams());
         return Promise.resolve({ id: key, name: name });
       }
 
       var ref = db.ref('teams').push();
-      return ref.set({
+      return ref.set(Object.assign({
         name: name, gameId: session.gameId, status: 'playing',
         startedAt: fb.database.ServerValue.TIMESTAMP, pairs: 0
-      }).then(function () {
+      }, extra)).then(function () {
         return { id: ref.key, name: name };
       });
     },
@@ -333,6 +343,7 @@
         previewSeconds: this.getPreviewSeconds(),
         previewMode: this.getPreviewMode(),
         turnLimitSeconds: this.getTurnLimitSeconds(),
+        playMode: this.getPlayMode(),
         roundIds: pickRoundIds(),
         updatedAt: Date.now(),
         resetAt: Date.now()
@@ -348,6 +359,7 @@
         previewSeconds: next.previewSeconds,
         previewMode: next.previewMode,
         turnLimitSeconds: next.turnLimitSeconds,
+        playMode: next.playMode,
         roundIds: next.roundIds,
         resetAt: fb.database.ServerValue.TIMESTAMP
       };
@@ -385,6 +397,17 @@
         return Promise.resolve(sec);
       }
       return db.ref('session').update({ turnLimitSeconds: sec }).then(function () { return sec; });
+    },
+
+    /* 참가 방식 변경 (관리자): 'team' | 'solo' */
+    setPlayMode: function (pm) {
+      pm = (pm === 'solo') ? 'solo' : 'team';
+      if (mode === 'local') {
+        session = Object.assign({}, session, { playMode: pm, updatedAt: Date.now() });
+        saveLocalSession(); broadcast('session'); emit('session', session);
+        return Promise.resolve(pm);
+      }
+      return db.ref('session').update({ playMode: pm }).then(function () { return pm; });
     },
 
     rankOf: rankOf
