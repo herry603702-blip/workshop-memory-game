@@ -7,7 +7,7 @@
 <title>연예인 같은그림찾기 서바이벌</title>
 <meta name="description" content="워크샵용 모바일 웹 게임 · 32장의 카드에서 16쌍의 연예인을 한 번의 실수 없이 찾아라" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d17'/%3E%3Crect x='20' y='14' width='24' height='36' rx='5' fill='none' stroke='%23ffcf5c' stroke-width='4'/%3E%3Cpath d='M32 25v10' stroke='%23ffcf5c' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/style.css?v=7" />
 </head>
 <body data-screen="intro">
 
@@ -43,7 +43,7 @@
 
       <ul class="rules">
         <li><b>1) 미리보기:</b> 시작 시 <b id="rulePreview">5</b>초 동안 <b id="rulePreviewMode">32장(16쌍)이 한 번에</b> 공개된 뒤 덮입니다.</li>
-        <li><b>2) 서바이벌:</b> 두 장을 뒤집어 같은 인물이면 유지, <b>한 번이라도 틀리면 즉시 탈락!</b></li>
+        <li><b>2) 서바이벌:</b> 한 쌍(2장)당 <b>5초 제한시간!</b> 시간 초과 또는 오답 시 <b>즉시 탈락!</b></li>
         <li><b>3) 중간 완료:</b> 더 못 찾겠으면 틀리기 전에 <b>중간 완료</b>를 눌러 현재 점수로 순위에 등록할 수 있습니다.</li>
         <li><b>4) 순위 기준:</b> <b>맞춘 쌍 수 많은 순</b> → 같으면 <b>완료 버튼 선착순</b>으로 1·2·3등 결정!</li>
       </ul>
@@ -62,6 +62,7 @@
       </div>
       <div class="hud__status" id="hudStatus">카드를 두 장 뒤집어 같은 인물을 찾으세요</div>
       <div class="hud__group hud__group--right">
+        <span class="turn-timer" id="turnTimer" hidden>⏱ 5.0s</span>
         <span class="hud__timer" id="hudTimer">00:00</span>
         <button class="icon-btn" id="btnSound" type="button" aria-pressed="true" title="소리 끄기" aria-label="소리 끄기">🔊</button>
       </div>
@@ -97,8 +98,8 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="js/config.js?v=6"></script>
-<script src="js/store.js?v=6"></script>
-<script src="js/game.js?v=6"></script>
+<script src="js/config.js?v=7"></script>
+<script src="js/store.js?v=7"></script>
+<script src="js/game.js?v=7"></script>
 </body>
 </html>

@@ -306,6 +306,28 @@ body[data-screen="game"]  #screenGame  { display: flex; }
 .hud__group { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .hud__group--right { justify-content: flex-end; }
 
+.turn-timer {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+  background: rgba(255, 207, 92, 0.14);
+  border: 1px solid rgba(255, 207, 92, 0.35);
+  white-space: nowrap;
+}
+.turn-timer.is-urgent {
+  color: #ff6b7a;
+  background: rgba(255, 79, 98, 0.18);
+  border-color: rgba(255, 79, 98, 0.55);
+  animation: pulseUrgent 0.45s ease-in-out infinite alternate;
+}
+@keyframes pulseUrgent {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
 .team-chip {
   max-width: 26vw;
   overflow: hidden;

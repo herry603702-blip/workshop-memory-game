@@ -89,7 +89,41 @@
     state.timeouts.forEach(clearTimeout);
     state.timeouts = [];
     if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+    if (state.turnTimerId) { clearInterval(state.turnTimerId); state.turnTimerId = null; }
     if (state.previewInterval) { clearInterval(state.previewInterval); state.previewInterval = null; }
+    var tt = $('turnTimer');
+    if (tt) { tt.hidden = true; tt.classList.remove('is-urgent'); }
+  }
+
+  function stopTurnTimer() {
+    if (state.turnTimerId) { clearInterval(state.turnTimerId); state.turnTimerId = null; }
+    var tt = $('turnTimer');
+    if (tt) { tt.hidden = true; tt.classList.remove('is-urgent'); }
+  }
+
+  function startTurnTimer() {
+    stopTurnTimer();
+    var limit = 5000;
+    state.turnDeadline = Date.now() + limit;
+    var tt = $('turnTimer');
+    if (tt) {
+      tt.hidden = false;
+      tt.classList.remove('is-urgent');
+      tt.textContent = '⏱ 5.0s';
+    }
+    state.turnTimerId = setInterval(function () {
+      if (state.phase !== 'play') { stopTurnTimer(); return; }
+      var remain = state.turnDeadline - Date.now();
+      if (remain <= 0) {
+        if (tt) tt.textContent = '⏱ 0.0s';
+        endByTimeout();
+        return;
+      }
+      if (tt) {
+        tt.textContent = '⏱ ' + (remain / 1000).toFixed(1) + 's';
+        tt.classList.toggle('is-urgent', remain <= 2000);
+      }
+    }, 80);
   }
   function toast(msg) {
     var t = $('toast');
@@ -413,6 +447,7 @@
     state.timerId = setInterval(function () {
       $('hudTimer').textContent = fmt(Date.now() - state.startAt);
     }, 200);
+    startTurnTimer();
   }
 
   function resolveMatch(a, b) {
@@ -429,8 +464,9 @@
       enableComplete();
     } else {
       state.busy = false;
-      $('hudStatus').textContent = '좋아요! 다음 짝을 찾으세요';
+      $('hudStatus').textContent = '좋아요! 5초 안에 다음 짝을 찾으세요';
       $('btnComplete').textContent = '중간 완료 (' + state.matched + '/' + PAIRS + '쌍)';
+      startTurnTimer();
     }
   }
 
@@ -441,6 +477,29 @@
     Sound.wrong();
     $('hudStatus').textContent = '다른 그림이 나왔습니다…';
     later(function () { endByFail(a, b); }, 1000);
+  }
+
+  function endByTimeout() {
+    if (state.phase !== 'play') return;
+    state.phase = 'over';
+    state.busy = true;
+    clearTimers();
+    Sound.wrong();
+
+    var elapsed = state.startAt ? Date.now() - state.startAt : 0;
+    var lock = readLock();
+    if (lock) { lock.status = 'out'; lock.pairs = state.matched; writeLock(lock); }
+    if (state.team) Store.failTeam(state.team.id, state.matched, 'timeout');
+
+    showOverlay({
+      emoji: '⏰',
+      title: '시간 초과! 탈락!',
+      win: false,
+      body:
+        '한 쌍을 <b>5초</b> 안에 찾지 못했습니다.<br />' +
+        '찾은 짝 <b>' + state.matched + '/' + PAIRS + '</b> · 도전 시간 <b>' + fmt(elapsed) + '</b><br />' +
+        '사회자가 초기화하면 다시 도전할 수 있습니다.'
+    });
   }
 
   function endByFail(a, b) {
@@ -646,6 +705,7 @@
       var b = card;
       state.second = b;
       state.busy = true;
+      stopTurnTimer();
 
       if (a.dataset.celeb === b.dataset.celeb) {
         later(function () { resolveMatch(a, b); }, 480);
